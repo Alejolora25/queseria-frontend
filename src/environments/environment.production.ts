@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://TU-DOMINIO/api',
+  apiBaseUrl: 'https://queseria-backend-calidad-leche-service.onrender.com',
   defaultPageSize: 20,
   maxPageSize: 200,
 };
