@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CrearProveedorReq, ProveedorResp, PageResp } from './models';
+import { ActualizarProveedorReq, CrearProveedorReq, ProveedorResp, PageResp } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ProveedoresApi {
@@ -8,6 +8,18 @@ export class ProveedoresApi {
 
   crear(req: CrearProveedorReq) {
     return this.http.post<ProveedorResp>('/api/v1/proveedores', req);
+  }
+
+  actualizar(id: number, req: ActualizarProveedorReq) {
+    return this.http.put<ProveedorResp>(`/api/v1/proveedores/${id}`, req);
+  }
+
+  activar(id: number) {
+    return this.http.patch<ProveedorResp>(`/api/v1/proveedores/${id}/activar`, {});
+  }
+
+  desactivar(id: number) {
+    return this.http.patch<ProveedorResp>(`/api/v1/proveedores/${id}/desactivar`, {});
   }
 
   porId(id: number) {

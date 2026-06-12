@@ -21,6 +21,12 @@ export interface CrearProveedorReq {
   identificacion: string;
 }
 
+export interface ActualizarProveedorReq {
+  nombre: string;
+  tipoIdentificacion: string;
+  identificacion: string;
+}
+
 // ===== Muestras =====
 export interface ComposicionReq {
   grasa: number;

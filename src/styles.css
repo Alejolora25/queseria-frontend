@@ -3,3 +3,17 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Limpia las uniones internas del outline de Angular Material sin quitar el label flotante. */
+.mat-mdc-form-field .mdc-notched-outline__leading {
+  border-right: 0;
+}
+
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  border-left: 0;
+  border-right: 0;
+}
+
+.mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-left: 0;
+}

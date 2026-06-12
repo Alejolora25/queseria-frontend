@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,7 +17,7 @@ import { parseApiError } from '../../../../core/api/api-error';
 import { ProveedorResp } from '../../../../core/api/models';
 import { environment } from '../../../../../environments/environment';
 
-type UiState = 'idle' | 'loading';
+type UiState = 'idle' | 'loading' | 'saving';
 
 @Component({
   standalone: true,
@@ -41,12 +41,15 @@ type UiState = 'idle' | 'loading';
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <h2 class="text-xl font-semibold">Proveedores</h2>
 
-        <button mat-raised-button color="primary" (click)="buscar(0)" [disabled]="busy()">
-          <span class="inline-flex items-center gap-2">
-            <mat-progress-spinner *ngIf="state() === 'loading'" diameter="18" mode="indeterminate" />
-            Consultar
-          </span>
-        </button>
+        <div class="flex gap-2">
+          <button mat-stroked-button (click)="nuevo()" [disabled]="busy()">Nuevo proveedor</button>
+          <button mat-raised-button color="primary" (click)="buscar(0)" [disabled]="busy()">
+            <span class="inline-flex items-center gap-2">
+              <mat-progress-spinner *ngIf="state() === 'loading'" diameter="18" mode="indeterminate" />
+              Consultar
+            </span>
+          </button>
+        </div>
       </div>
 
       <!-- Filtros -->
@@ -90,6 +93,74 @@ type UiState = 'idle' | 'loading';
         </mat-card-content>
       </mat-card>
 
+      <!-- Crear / editar -->
+      <mat-card *ngIf="formVisible()" class="rounded-2xl">
+        <mat-card-content class="p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="font-semibold">
+              {{ proveedorEditando() ? 'Editar proveedor' : 'Crear proveedor' }}
+            </div>
+            <button mat-stroked-button (click)="cancelarFormulario()" [disabled]="busy()">Cancelar</button>
+          </div>
+
+          <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="proveedorForm">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre</mat-label>
+              <input matInput [formControl]="proveedorForm.controls.nombre" />
+              <mat-error *ngIf="proveedorForm.controls.nombre.invalid">Requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo</mat-label>
+              <mat-select [formControl]="proveedorForm.controls.tipoIdentificacion">
+                <mat-option value="CC">CC</mat-option>
+                <mat-option value="NIT">NIT</mat-option>
+                <mat-option value="CE">CE</mat-option>
+              </mat-select>
+              <mat-error *ngIf="proveedorForm.controls.tipoIdentificacion.invalid">Requerido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Identificación</mat-label>
+              <input matInput [formControl]="proveedorForm.controls.identificacion" />
+              <mat-error *ngIf="proveedorForm.controls.identificacion.invalid">Requerido</mat-error>
+            </mat-form-field>
+          </form>
+
+          <div *ngIf="formError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
+            <div class="font-medium text-red-700">No se pudo guardar</div>
+            <div class="text-red-700">{{ formError() }}</div>
+
+            <div *ngIf="formFields()" class="mt-2 text-xs text-slate-700">
+              <div class="font-medium">Detalles:</div>
+              <ul class="list-disc pl-5">
+                <li *ngFor="let item of fieldErrorsList(formFields()!)">
+                  <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="guardarProveedor()"
+              [disabled]="proveedorForm.invalid || busy()"
+            >
+              <span class="inline-flex items-center gap-2">
+                <mat-progress-spinner *ngIf="state() === 'saving'" diameter="18" mode="indeterminate" />
+                Guardar
+              </span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div *ngIf="success()" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        {{ success() }}
+      </div>
+
       <!-- Tabla -->
       <mat-card class="rounded-2xl">
         <mat-card-content class="p-0">
@@ -123,6 +194,33 @@ type UiState = 'idle' | 'loading';
                   >
                     {{ r.activo ? 'Activo' : 'Inactivo' }}
                   </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                <td mat-cell *matCellDef="let r">
+                  <div class="flex flex-wrap gap-2">
+                    <button mat-stroked-button (click)="editar(r)" [disabled]="busy()">Editar</button>
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      *ngIf="!r.activo"
+                      (click)="activar(r)"
+                      [disabled]="busy()"
+                    >
+                      Activar
+                    </button>
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      *ngIf="r.activo"
+                      (click)="desactivar(r)"
+                      [disabled]="busy()"
+                    >
+                      Desactivar
+                    </button>
+                  </div>
                 </td>
               </ng-container>
 
@@ -166,6 +264,11 @@ export class ProveedoresPageComponent {
   readonly offset = signal(0);
 
   readonly error = signal<string | null>(null);
+  readonly formError = signal<string | null>(null);
+  readonly formFields = signal<Record<string, string[]> | null>(null);
+  readonly success = signal<string | null>(null);
+  readonly formVisible = signal(false);
+  readonly proveedorEditando = signal<ProveedorResp | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     q: [''],
@@ -174,7 +277,13 @@ export class ProveedoresPageComponent {
     limit: [environment.defaultPageSize],
   });
 
-  readonly displayedColumns = ['id', 'nombre', 'identificacion', 'activo'];
+  readonly proveedorForm = this.fb.nonNullable.group({
+    nombre: ['', Validators.required],
+    tipoIdentificacion: ['CC', Validators.required],
+    identificacion: ['', Validators.required],
+  });
+
+  readonly displayedColumns = ['id', 'nombre', 'identificacion', 'activo', 'acciones'];
 
   constructor() {
     // carga inicial
@@ -184,6 +293,82 @@ export class ProveedoresPageComponent {
   limpiar() {
     this.form.reset({ q: '', activo: null, limit: environment.defaultPageSize });
     this.buscar(0);
+  }
+
+  nuevo() {
+    this.formError.set(null);
+    this.formFields.set(null);
+    this.success.set(null);
+    this.proveedorEditando.set(null);
+    this.proveedorForm.reset({ nombre: '', tipoIdentificacion: 'CC', identificacion: '' });
+    this.formVisible.set(true);
+  }
+
+  editar(proveedor: ProveedorResp) {
+    this.formError.set(null);
+    this.formFields.set(null);
+    this.success.set(null);
+    this.proveedorEditando.set(proveedor);
+    this.proveedorForm.reset({
+      nombre: proveedor.nombre,
+      tipoIdentificacion: proveedor.tipoIdentificacion,
+      identificacion: proveedor.identificacion,
+    });
+    this.formVisible.set(true);
+  }
+
+  cancelarFormulario() {
+    this.formVisible.set(false);
+    this.proveedorEditando.set(null);
+    this.formError.set(null);
+    this.formFields.set(null);
+  }
+
+  guardarProveedor() {
+    this.formError.set(null);
+    this.formFields.set(null);
+    this.success.set(null);
+
+    const v = this.proveedorForm.getRawValue();
+    const payload = {
+      nombre: v.nombre.trim(),
+      tipoIdentificacion: v.tipoIdentificacion,
+      identificacion: v.identificacion.trim(),
+    };
+
+    const actual = this.proveedorEditando();
+    const request = actual
+      ? this.proveedoresApi.actualizar(actual.id, payload)
+      : this.proveedoresApi.crear(payload);
+
+    this.state.set('saving');
+    request.subscribe({
+      next: (proveedor) => {
+        this.state.set('idle');
+        this.formVisible.set(false);
+        this.proveedorEditando.set(null);
+        this.success.set(
+          actual
+            ? `Proveedor ${proveedor.nombre} actualizado.`
+            : `Proveedor ${proveedor.nombre} creado.`
+        );
+        this.buscar(this.offset());
+      },
+      error: (err) => {
+        this.state.set('idle');
+        const parsed = parseApiError(err);
+        this.formError.set(parsed.message);
+        this.formFields.set(parsed.fields ?? null);
+      },
+    });
+  }
+
+  activar(proveedor: ProveedorResp) {
+    this.cambiarEstado(proveedor, true);
+  }
+
+  desactivar(proveedor: ProveedorResp) {
+    this.cambiarEstado(proveedor, false);
   }
 
   buscar(offset: number) {
@@ -211,6 +396,38 @@ export class ProveedoresPageComponent {
           this.error.set(parsed.message);
         },
       });
+  }
+
+  fieldErrorsList(fields: Record<string, string[]>) {
+    return Object.entries(fields).map(([field, messages]) => ({ field, messages }));
+  }
+
+  private cambiarEstado(proveedor: ProveedorResp, activo: boolean) {
+    this.error.set(null);
+    this.formError.set(null);
+    this.success.set(null);
+
+    const request = activo
+      ? this.proveedoresApi.activar(proveedor.id)
+      : this.proveedoresApi.desactivar(proveedor.id);
+
+    this.state.set('saving');
+    request.subscribe({
+      next: (actualizado) => {
+        this.state.set('idle');
+        this.success.set(
+          activo
+            ? `Proveedor ${actualizado.nombre} activado.`
+            : `Proveedor ${actualizado.nombre} desactivado.`
+        );
+        this.buscar(this.offset());
+      },
+      error: (err) => {
+        this.state.set('idle');
+        const parsed = parseApiError(err);
+        this.error.set(parsed.message);
+      },
+    });
   }
 
   onPage(ev: PageEvent) {
