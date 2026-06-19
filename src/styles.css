@@ -175,12 +175,28 @@ body {
   display: block;
 }
 
+.historico-desktop-table {
+  display: none !important;
+}
+
+.historico-mobile-list {
+  display: block;
+}
+
 @media (min-width: 768px) {
   .providers-desktop-table {
     display: block !important;
   }
 
   .providers-mobile-list {
+    display: none !important;
+  }
+
+  .historico-desktop-table {
+    display: block !important;
+  }
+
+  .historico-mobile-list {
     display: none !important;
   }
 }

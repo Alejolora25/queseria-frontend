@@ -10,19 +10,20 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatDividerModule],
   template: `
-    <div class="p-4 w-[92vw] max-w-3xl">
-      <div class="flex items-start justify-between gap-4">
+    <div class="max-h-[88vh] w-[min(92vw,880px)] overflow-auto p-5 sm:p-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div class="text-lg font-semibold">Analítica de muestra</div>
-          <div class="text-sm text-slate-600">
-            sampleId: {{ data.sampleId }} · proveedorId: {{ data.proveedorId }}
+          <div class="app-badge app-badge-neutral mb-3">Analítica</div>
+          <div class="text-xl font-semibold tracking-tight">Muestra #{{ data.sampleId }}</div>
+          <div class="mt-1 text-sm text-slate-600">
+            Proveedor #{{ data.proveedorId }}
           </div>
           <div class="text-xs text-slate-500 mt-1">
             {{ data.timestamp }}
           </div>
         </div>
     
-        <button mat-stroked-button mat-dialog-close>Cerrar</button>
+        <button class="w-full sm:w-auto" mat-stroked-button mat-dialog-close>Cerrar</button>
       </div>
     
       <mat-divider class="my-4"></mat-divider>
@@ -53,27 +54,27 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
         </div>
       </div>
     
-      <div class="app-panel mt-4 p-3">
+      <div class="app-panel mt-4 p-4">
         <div class="font-semibold mb-2">Base (valores)</div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-          <div><span class="text-slate-500">Grasa:</span> {{ n(data.base?.grasa) }}</div>
-          <div><span class="text-slate-500">Proteína:</span> {{ n(data.base?.proteina) }}</div>
-          <div><span class="text-slate-500">Lactosa:</span> {{ n(data.base?.lactosa) }}</div>
-          <div><span class="text-slate-500">ST:</span> {{ n(data.base?.solidosTotales) }}</div>
-          <div><span class="text-slate-500">Densidad:</span> {{ n(data.base?.densidad) }}</div>
-          <div><span class="text-slate-500">°D:</span> {{ n(data.base?.acidezDornic) }}</div>
-          <div><span class="text-slate-500">°C:</span> {{ n(data.base?.temperaturaC) }}</div>
-          <div><span class="text-slate-500">SNG:</span> {{ n(data.base?.sng) }}</div>
-          <div><span class="text-slate-500">Agua%:</span> {{ n(data.base?.aguaPct) }}</div>
+        <div class="grid grid-cols-2 gap-2 text-sm md:grid-cols-3 lg:grid-cols-4">
+          <div class="app-metric-card p-3"><span class="text-slate-500">Grasa</span><div class="font-semibold">{{ n(data.base?.grasa) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">Proteína</span><div class="font-semibold">{{ n(data.base?.proteina) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">Lactosa</span><div class="font-semibold">{{ n(data.base?.lactosa) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">ST</span><div class="font-semibold">{{ n(data.base?.solidosTotales) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">Densidad</span><div class="font-semibold">{{ n(data.base?.densidad) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">°D</span><div class="font-semibold">{{ n(data.base?.acidezDornic) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">°C</span><div class="font-semibold">{{ n(data.base?.temperaturaC) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">SNG</span><div class="font-semibold">{{ n(data.base?.sng) }}</div></div>
+          <div class="app-metric-card p-3"><span class="text-slate-500">Agua%</span><div class="font-semibold">{{ n(data.base?.aguaPct) }}</div></div>
         </div>
       </div>
     
-      <div class="app-panel mt-4 p-3">
+      <div class="app-panel mt-4 p-4">
         <div class="font-semibold mb-2">Evaluación</div>
     
-        @if (entries().length) {
+        @if (evaluacionEntries.length) {
           <div class="space-y-3">
-            @for (e of entries(); track e) {
+            @for (e of evaluacionEntries; track e.key) {
               <div class="app-metric-card">
                 <div class="flex items-center justify-between gap-2">
                   <div class="font-semibold">{{ e.key }}</div>
@@ -102,8 +103,9 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
 })
 export class AnaliticaDialogComponent {
   data = inject<AnaliticaMuestraDocResp>(MAT_DIALOG_DATA);
+  readonly evaluacionEntries = this.buildEvaluacionEntries();
 
-  entries() {
+  private buildEvaluacionEntries() {
     const map = this.data?.evaluacion?.porParametro ?? {};
     return Object.entries(map).map(([key, v]) => ({
       key,

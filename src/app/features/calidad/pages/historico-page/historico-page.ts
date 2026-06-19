@@ -44,8 +44,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
       <!-- Buscar proveedor -->
       <mat-card class="app-card">
         <mat-card-content class="app-card-content space-y-3">
-          <div class="flex items-start gap-4 flex-wrap">
-            <mat-form-field class="w-full sm:w-56" appearance="outline">
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
+            <mat-form-field class="w-full" appearance="outline">
               <mat-label>Tipo</mat-label>
               <mat-select [formControl]="buscarForm.controls.tipoIdentificacion">
                 <mat-option value="CC">CC</mat-option>
@@ -64,7 +64,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
             <button
               mat-raised-button
               color="primary"
-              class="mt-1"
+              class="w-full lg:w-auto lg:mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
@@ -79,7 +79,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               </span>
             </button>
     
-            <button mat-stroked-button class="mt-1" (click)="reset()" [disabled]="busy()">
+            <button mat-stroked-button class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
@@ -94,7 +94,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
           @if (proveedor()) {
             <div class="pt-2">
               <mat-divider />
-              <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div class="text-sm text-slate-600">Proveedor</div>
                   <div class="font-semibold">
@@ -119,6 +119,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               <button
                 mat-raised-button
                 color="primary"
+                class="w-full sm:w-auto"
                 (click)="cargarHistorico(0)"
                 [disabled]="busy() || filtrosForm.invalid"
                 >
@@ -172,59 +173,121 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
                 <div>{{ analiticaError() }}</div>
               </div>
             }
-            <!-- Tabla -->
-            <div class="app-table-frame overflow-auto">
-              <table mat-table [dataSource]="items()" class="min-w-[900px]">
-                <ng-container matColumnDef="fecha">
-                  <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                  <td mat-cell *matCellDef="let r">{{ r.fechaMuestra }}</td>
-                </ng-container>
-                <ng-container matColumnDef="volumen">
-                  <th mat-header-cell *matHeaderCellDef>Vol (L)</th>
-                  <td mat-cell *matCellDef="let r">{{ r.volumenLitros ?? '' }}</td>
-                </ng-container>
-                <ng-container matColumnDef="precio">
-                  <th mat-header-cell *matHeaderCellDef>Precio/L</th>
-                  <td mat-cell *matCellDef="let r">{{ r.precioLitro ?? '' }}</td>
-                </ng-container>
-                <ng-container matColumnDef="grasa">
-                  <th mat-header-cell *matHeaderCellDef>Grasa</th>
-                  <td mat-cell *matCellDef="let r">{{ r.grasa }}</td>
-                </ng-container>
-                <ng-container matColumnDef="proteina">
-                  <th mat-header-cell *matHeaderCellDef>Prot</th>
-                  <td mat-cell *matCellDef="let r">{{ r.proteina }}</td>
-                </ng-container>
-                <ng-container matColumnDef="st">
-                  <th mat-header-cell *matHeaderCellDef>ST</th>
-                  <td mat-cell *matCellDef="let r">{{ r.solidosTotales }}</td>
-                </ng-container>
-                <ng-container matColumnDef="densidad">
-                  <th mat-header-cell *matHeaderCellDef>Dens</th>
-                  <td mat-cell *matCellDef="let r">{{ r.densidad }}</td>
-                </ng-container>
-                <ng-container matColumnDef="dornic">
-                  <th mat-header-cell *matHeaderCellDef>°D</th>
-                  <td mat-cell *matCellDef="let r">{{ r.acidezDornic }}</td>
-                </ng-container>
-                <ng-container matColumnDef="temp">
-                  <th mat-header-cell *matHeaderCellDef>°C</th>
-                  <td mat-cell *matCellDef="let r">{{ r.temperaturaC }}</td>
-                </ng-container>
-                <ng-container matColumnDef="obs">
-                  <th mat-header-cell *matHeaderCellDef>Obs</th>
-                  <td mat-cell *matCellDef="let r">{{ r.observaciones ?? '' }}</td>
-                </ng-container>
-                <ng-container matColumnDef="acciones">
-                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                  <td mat-cell *matCellDef="let r">
-                    <button mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button>
-                  </td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-              </table>
+            <!-- Lista móvil -->
+            <div class="historico-mobile-list space-y-3">
+              @for (r of items(); track r.id) {
+                <mat-card class="app-card">
+                  <mat-card-content class="app-card-content space-y-3">
+                    <div>
+                      <div class="text-xs font-semibold uppercase text-slate-500">Fecha</div>
+                      <div class="mt-1 break-words font-semibold text-slate-950">{{ r.fechaMuestra }}</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">Volumen</div>
+                        <div class="font-semibold">{{ r.volumenLitros }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">Precio/L</div>
+                        <div class="font-semibold">{{ r.precioLitro ?? '—' }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">Grasa</div>
+                        <div class="font-semibold">{{ r.grasa }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">Proteína</div>
+                        <div class="font-semibold">{{ r.proteina }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">ST</div>
+                        <div class="font-semibold">{{ r.solidosTotales }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">Densidad</div>
+                        <div class="font-semibold">{{ r.densidad }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">°D</div>
+                        <div class="font-semibold">{{ r.acidezDornic }}</div>
+                      </div>
+                      <div class="app-metric-card p-3">
+                        <div class="text-xs text-slate-500">°C</div>
+                        <div class="font-semibold">{{ r.temperaturaC }}</div>
+                      </div>
+                    </div>
+
+                    @if (r.observaciones) {
+                      <div class="rounded-xl border border-slate-200 bg-white/70 p-3 text-sm text-slate-600">
+                        {{ r.observaciones }}
+                      </div>
+                    }
+
+                    <button class="w-full" mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">
+                      Ver analítica
+                    </button>
+                  </mat-card-content>
+                </mat-card>
+              }
             </div>
+
+            <!-- Tabla desktop -->
+            <div class="historico-desktop-table">
+              <div class="app-table-frame overflow-auto">
+                <table mat-table [dataSource]="items()" class="min-w-[900px]">
+                  <ng-container matColumnDef="fecha">
+                    <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                    <td mat-cell *matCellDef="let r">{{ r.fechaMuestra }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="volumen">
+                    <th mat-header-cell *matHeaderCellDef>Vol (L)</th>
+                    <td mat-cell *matCellDef="let r">{{ r.volumenLitros ?? '' }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="precio">
+                    <th mat-header-cell *matHeaderCellDef>Precio/L</th>
+                    <td mat-cell *matCellDef="let r">{{ r.precioLitro ?? '' }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="grasa">
+                    <th mat-header-cell *matHeaderCellDef>Grasa</th>
+                    <td mat-cell *matCellDef="let r">{{ r.grasa }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="proteina">
+                    <th mat-header-cell *matHeaderCellDef>Prot</th>
+                    <td mat-cell *matCellDef="let r">{{ r.proteina }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="st">
+                    <th mat-header-cell *matHeaderCellDef>ST</th>
+                    <td mat-cell *matCellDef="let r">{{ r.solidosTotales }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="densidad">
+                    <th mat-header-cell *matHeaderCellDef>Dens</th>
+                    <td mat-cell *matCellDef="let r">{{ r.densidad }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="dornic">
+                    <th mat-header-cell *matHeaderCellDef>°D</th>
+                    <td mat-cell *matCellDef="let r">{{ r.acidezDornic }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="temp">
+                    <th mat-header-cell *matHeaderCellDef>°C</th>
+                    <td mat-cell *matCellDef="let r">{{ r.temperaturaC }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="obs">
+                    <th mat-header-cell *matHeaderCellDef>Obs</th>
+                    <td mat-cell *matCellDef="let r">{{ r.observaciones ?? '' }}</td>
+                  </ng-container>
+                  <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                    <td mat-cell *matCellDef="let r">
+                      <button mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button>
+                    </td>
+                  </ng-container>
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+              </div>
+            </div>
+
             <mat-paginator
               [length]="total()"
               [pageSize]="limit()"
@@ -393,8 +456,8 @@ export class HistoricoPageComponent {
 
         this.dialog.open(AnaliticaDialogComponent, {
           data: doc,
-          maxWidth: '90vw',
-          width: '900px',
+          maxWidth: '92vw',
+          width: 'min(92vw, 880px)',
         });
       },
       error: (err) => {
