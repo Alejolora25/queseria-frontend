@@ -33,8 +33,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
   template: `
     <div class="space-y-4">
       <!-- Proveedor -->
-      <mat-card class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card class="app-card">
+        <mat-card-content class="app-card-content space-y-3">
           <div class="flex items-start gap-4 flex-wrap">
             <mat-form-field class="w-full sm:w-56" appearance="outline">
               <mat-label>Tipo</mat-label>
@@ -67,9 +67,9 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
             </button>
           </div>
 
-          <div *ngIf="bannerError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">Error</div>
-            <div class="text-red-700">{{ bannerError() }}</div>
+          <div *ngIf="bannerError()" class="app-alert app-alert-error">
+            <div class="font-medium">Error</div>
+            <div>{{ bannerError() }}</div>
           </div>
 
           <div *ngIf="proveedor()" class="pt-2">
@@ -81,15 +81,15 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
                   {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
                 </div>
               </div>
-              <span class="text-xs rounded-full px-2 py-1 border bg-white">ID: {{ proveedor()!.id }}</span>
+              <span class="app-badge app-badge-neutral">ID: {{ proveedor()!.id }}</span>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Filtros -->
-      <mat-card *ngIf="proveedor()" class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-4">
+      <mat-card *ngIf="proveedor()" class="app-card">
+        <mat-card-content class="app-card-content space-y-4">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="font-semibold">Rango</div>
 
@@ -118,62 +118,62 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
             </mat-form-field>
           </form>
 
-          <div *ngIf="resumenError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">No se pudo cargar</div>
-            <div class="text-red-700">{{ resumenError() }}</div>
+          <div *ngIf="resumenError()" class="app-alert app-alert-error">
+            <div class="font-medium">No se pudo cargar</div>
+            <div>{{ resumenError() }}</div>
           </div>
 
           <!-- Resumen -->
           <div *ngIf="resumen()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div class="rounded-2xl border bg-white p-4">
+            <div class="app-metric-card">
               <div class="text-sm text-slate-600">KPI promedio</div>
               <div class="text-3xl font-semibold mt-1">{{ pct(resumen()!.promedios.kpi) }}</div>
               <div class="text-xs text-slate-500 mt-1">1.00 = 100%</div>
             </div>
 
-            <div class="rounded-2xl border bg-white p-4 md:col-span-2">
+            <div class="app-metric-card md:col-span-2">
               <div class="text-sm text-slate-600">Promedios</div>
               <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">Grasa</div>
                   <div class="font-semibold">{{ n(resumen()!.promedios.grasa) }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">Proteína</div>
                   <div class="font-semibold">{{ n(resumen()!.promedios.proteina) }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">ST</div>
                   <div class="font-semibold">{{ n(resumen()!.promedios.solidosTotales) }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">SNG</div>
                   <div class="font-semibold">{{ n(resumen()!.promedios.sng) }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">KPI</div>
                   <div class="font-semibold">{{ n(resumen()!.promedios.kpi) }}</div>
                 </div>
               </div>
             </div>
 
-            <div class="rounded-2xl border bg-white p-4 md:col-span-3">
+            <div class="app-metric-card md:col-span-3">
               <div class="text-sm text-slate-600">Distribución de estados</div>
 
               <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-3">
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">ACEPTABLE</div>
                   <div class="font-semibold">{{ resumen()!.distribucionEstados.ACEPTABLE }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">ALERTA</div>
                   <div class="font-semibold">{{ resumen()!.distribucionEstados.ALERTA }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">RECHAZAR</div>
                   <div class="font-semibold">{{ resumen()!.distribucionEstados.RECHAZAR }}</div>
                 </div>
-                <div class="rounded-xl border p-3">
+                <div class="app-metric-card">
                   <div class="text-xs text-slate-500">TOTAL</div>
                   <div class="font-semibold">{{ resumen()!.distribucionEstados.totalEstados }}</div>
                 </div>

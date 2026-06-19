@@ -51,8 +51,8 @@ type UiState = 'idle' | 'loading' | 'saving';
       </div>
 
       <!-- Filtros -->
-      <mat-card class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card class="app-card">
+        <mat-card-content class="app-card-content space-y-3">
           <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="form">
             <mat-form-field appearance="outline">
               <mat-label>Búsqueda</mat-label>
@@ -84,16 +84,16 @@ type UiState = 'idle' | 'loading' | 'saving';
             <button mat-stroked-button (click)="buscar(0)" [disabled]="busy()">Aplicar</button>
           </div>
 
-          <div *ngIf="error()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">No se pudo cargar</div>
-            <div class="text-red-700">{{ error() }}</div>
+          <div *ngIf="error()" class="app-alert app-alert-error">
+            <div class="font-medium">No se pudo cargar</div>
+            <div>{{ error() }}</div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Crear / editar -->
-      <mat-card *ngIf="formVisible()" class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card *ngIf="formVisible()" class="app-card">
+        <mat-card-content class="app-card-content space-y-3">
           <div class="flex items-center justify-between gap-2 flex-wrap">
             <div class="font-semibold">
               {{ proveedorEditando() ? 'Editar proveedor' : 'Crear proveedor' }}
@@ -125,9 +125,9 @@ type UiState = 'idle' | 'loading' | 'saving';
             </mat-form-field>
           </form>
 
-          <div *ngIf="formError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">No se pudo guardar</div>
-            <div class="text-red-700">{{ formError() }}</div>
+          <div *ngIf="formError()" class="app-alert app-alert-error">
+            <div class="font-medium">No se pudo guardar</div>
+            <div>{{ formError() }}</div>
 
             <div *ngIf="formFields()" class="mt-2 text-xs text-slate-700">
               <div class="font-medium">Detalles:</div>
@@ -155,14 +155,14 @@ type UiState = 'idle' | 'loading' | 'saving';
         </mat-card-content>
       </mat-card>
 
-      <div *ngIf="success()" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+      <div *ngIf="success()" class="app-alert app-alert-success">
         {{ success() }}
       </div>
 
       <!-- Tabla -->
-      <mat-card class="rounded-2xl">
+      <mat-card class="app-card">
         <mat-card-content class="p-0">
-          <div class="overflow-auto rounded-2xl border bg-white">
+          <div class="app-table-frame overflow-auto">
             <table mat-table [dataSource]="items()" class="min-w-[900px]">
               <ng-container matColumnDef="id">
                 <th mat-header-cell *matHeaderCellDef>ID</th>
@@ -183,12 +183,9 @@ type UiState = 'idle' | 'loading' | 'saving';
                 <th mat-header-cell *matHeaderCellDef>Estado</th>
                 <td mat-cell *matCellDef="let r">
                   <span
-                    class="text-xs rounded-full px-2 py-1 border bg-white"
-                    [class.border-emerald-200]="r.activo"
-                    [class.text-emerald-700]="r.activo"
-                    [class.bg-emerald-50]="r.activo"
-                    [class.border-slate-200]="!r.activo"
-                    [class.text-slate-700]="!r.activo"
+                    class="app-badge"
+                    [class.app-badge-success]="r.activo"
+                    [class.app-badge-neutral]="!r.activo"
                   >
                     {{ r.activo ? 'Activo' : 'Inactivo' }}
                   </span>

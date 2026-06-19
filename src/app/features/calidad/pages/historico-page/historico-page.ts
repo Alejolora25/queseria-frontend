@@ -44,8 +44,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
   template: `
     <div class="space-y-4">
       <!-- Buscar proveedor -->
-      <mat-card class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card class="app-card">
+        <mat-card-content class="app-card-content space-y-3">
           <div class="flex items-start gap-4 flex-wrap">
             <mat-form-field class="w-full sm:w-56" appearance="outline">
               <mat-label>Tipo</mat-label>
@@ -83,9 +83,9 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
             </button>
           </div>
 
-          <div *ngIf="bannerError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">Error</div>
-            <div class="text-red-700">{{ bannerError() }}</div>
+          <div *ngIf="bannerError()" class="app-alert app-alert-error">
+            <div class="font-medium">Error</div>
+            <div>{{ bannerError() }}</div>
           </div>
 
           <div *ngIf="proveedor()" class="pt-2">
@@ -97,7 +97,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
                   {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
                 </div>
               </div>
-              <span class="text-xs rounded-full px-2 py-1 border bg-white">
+              <span class="app-badge app-badge-neutral">
                 ID: {{ proveedor()!.id }}
               </span>
             </div>
@@ -106,8 +106,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
       </mat-card>
 
       <!-- Filtros histórico -->
-      <mat-card *ngIf="proveedor()" class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-4">
+      <mat-card *ngIf="proveedor()" class="app-card">
+        <mat-card-content class="app-card-content space-y-4">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="font-semibold">Filtros</div>
 
@@ -153,18 +153,18 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
           </form>
 
           <!-- Error histórico -->
-          <div *ngIf="histError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">No se pudo cargar</div>
-            <div class="text-red-700">{{ histError() }}</div>
+          <div *ngIf="histError()" class="app-alert app-alert-error">
+            <div class="font-medium">No se pudo cargar</div>
+            <div>{{ histError() }}</div>
           </div>
           <!-- Error analítica (arriba de la tabla) -->
-          <div *ngIf="analiticaError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-              <div class="font-medium text-red-700">Analítica</div>
-              <div class="text-red-700">{{ analiticaError() }}</div>
+          <div *ngIf="analiticaError()" class="app-alert app-alert-error">
+              <div class="font-medium">Analítica</div>
+              <div>{{ analiticaError() }}</div>
           </div>
 
           <!-- Tabla -->
-          <div class="overflow-auto rounded-2xl border bg-white">
+          <div class="app-table-frame overflow-auto">
             <table mat-table [dataSource]="items()" class="min-w-[900px]">
 
               <ng-container matColumnDef="fecha">

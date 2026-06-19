@@ -36,8 +36,8 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
   template: `
     <div class="space-y-4">
       <!-- Buscar proveedor -->
-      <mat-card class="rounded-2xl">
-        <mat-card-content class="p-4">
+      <mat-card class="app-card">
+        <mat-card-content class="app-card-content">
           <div class="flex items-start gap-4 flex-wrap">
             <mat-form-field class="w-full sm:w-56" appearance="outline">
               <mat-label>Tipo</mat-label>
@@ -82,9 +82,9 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
             </button>
           </div>
 
-          <div *ngIf="bannerError()" class="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-            <div class="font-medium text-red-700">Error</div>
-            <div class="text-red-700">{{ bannerError() }}</div>
+          <div *ngIf="bannerError()" class="app-alert app-alert-error mt-3">
+            <div class="font-medium">Error</div>
+            <div>{{ bannerError() }}</div>
           </div>
 
           <div *ngIf="proveedor()" class="mt-4">
@@ -97,7 +97,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                   {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
                 </div>
               </div>
-              <span class="text-xs rounded-full px-2 py-1 border bg-white">
+              <span class="app-badge app-badge-neutral">
                 ID: {{ proveedor()!.id }}
               </span>
             </div>
@@ -106,8 +106,8 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
       </mat-card>
 
       <!-- Crear proveedor (si no existe) -->
-      <mat-card *ngIf="showCrearProveedor()" class="rounded-2xl border border-amber-200 bg-amber-50">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card *ngIf="showCrearProveedor()" class="app-card border-amber-200 bg-amber-50">
+        <mat-card-content class="app-card-content space-y-3">
           <div class="font-semibold">No existe proveedor. Crear nuevo</div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -133,9 +133,9 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
             </mat-form-field>
           </div>
 
-          <div *ngIf="crearProveedorError()" class="rounded-xl border border-red-200 bg-white p-3 text-sm">
-            <div class="font-medium text-red-700">No se pudo crear</div>
-            <div class="text-red-700">{{ crearProveedorError() }}</div>
+          <div *ngIf="crearProveedorError()" class="app-alert app-alert-error bg-white">
+            <div class="font-medium">No se pudo crear</div>
+            <div>{{ crearProveedorError() }}</div>
 
             <div *ngIf="crearProveedorFields()" class="mt-2 text-xs text-slate-700">
               <div class="font-medium">Detalles:</div>
@@ -168,8 +168,8 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
       </mat-card>
 
       <!-- Form muestra -->
-      <mat-card *ngIf="proveedor()" class="rounded-2xl">
-        <mat-card-content class="p-4 space-y-4">
+      <mat-card *ngIf="proveedor()" class="app-card">
+        <mat-card-content class="app-card-content space-y-4">
           <div class="font-semibold">Datos de la muestra</div>
 
           <form class="space-y-4" [formGroup]="muestraForm">
@@ -270,9 +270,9 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
               </mat-form-field>
             </div>
 
-            <div *ngIf="muestraError()" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm">
-              <div class="font-medium text-red-700">No se pudo registrar</div>
-              <div class="text-red-700">{{ muestraError() }}</div>
+            <div *ngIf="muestraError()" class="app-alert app-alert-error">
+              <div class="font-medium">No se pudo registrar</div>
+              <div>{{ muestraError() }}</div>
 
               <div *ngIf="muestraFields()" class="mt-2 text-xs text-slate-700">
                 <div class="font-medium">Detalles:</div>
@@ -304,8 +304,8 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
       </mat-card>
 
       <!-- Resultado evaluación -->
-      <mat-card *ngIf="muestraCreada()" class="rounded-2xl border border-emerald-200 bg-emerald-50">
-        <mat-card-content class="p-4 space-y-3">
+      <mat-card *ngIf="muestraCreada()" class="app-card border-emerald-200 bg-emerald-50">
+        <mat-card-content class="app-card-content space-y-3">
           <div class="font-semibold">Muestra registrada ✅</div>
           <div class="text-sm text-slate-700">
             ID muestra: <span class="font-medium">{{ muestraCreada()!.id }}</span>
@@ -318,7 +318,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
               <div
                 *ngFor="let k of objectKeys(por)"
-                class="rounded-xl border bg-white p-3"
+                class="app-metric-card"
               >
                 <div class="flex items-center justify-between gap-2">
                   <div class="font-medium">{{ prettyKey(k) }}</div>

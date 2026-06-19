@@ -1,8 +1,153 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html {
+  --app-bg: #f2f7fb;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f8fafc;
+  --app-border: #d9e2ec;
+  --app-border-strong: #94a3b8;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --app-muted-2: #8aa0ba;
+  --app-primary: #0369a1;
+  --app-primary-strong: #075985;
+  --app-primary-soft: #e0f2fe;
+  --app-success: #047857;
+  --app-success-soft: #ecfdf5;
+  --app-warning: #b45309;
+  --app-warning-soft: #fffbeb;
+  --app-danger: #b91c1c;
+  --app-danger-soft: #fef2f2;
+  --app-radius: 18px;
+  --app-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  --app-shadow-soft: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-card {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius) !important;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.app-card-content {
+  padding: 1rem !important;
+}
+
+.app-card-content-lg {
+  padding: 1.25rem !important;
+}
+
+.app-table-frame,
+.app-panel {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.app-metric-card {
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  background: var(--app-surface);
+  padding: 1rem;
+}
+
+.app-alert {
+  border: 1px solid;
+  border-radius: 14px;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+.app-alert-error {
+  border-color: #fecaca;
+  background: var(--app-danger-soft);
+  color: var(--app-danger);
+}
+
+.app-alert-success {
+  border-color: #a7f3d0;
+  background: var(--app-success-soft);
+  color: var(--app-success);
+}
+
+.app-alert-warning {
+  border-color: #fde68a;
+  background: var(--app-warning-soft);
+  color: var(--app-warning);
+}
+
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 1.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  background: var(--app-surface);
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.app-badge-success {
+  border-color: #a7f3d0;
+  background: var(--app-success-soft);
+  color: var(--app-success);
+}
+
+.app-badge-warning {
+  border-color: #fde68a;
+  background: var(--app-warning-soft);
+  color: var(--app-warning);
+}
+
+.app-badge-danger {
+  border-color: #fecaca;
+  background: var(--app-danger-soft);
+  color: var(--app-danger);
+}
+
+.app-badge-neutral {
+  border-color: var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-muted);
+}
+
+.mat-mdc-card {
+  --mdc-elevated-card-container-elevation: none;
+}
+
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  min-height: 44px;
+  border-radius: 999px !important;
+  font-weight: 700;
+}
+
+.mat-mdc-raised-button.mat-primary {
+  box-shadow: 0 10px 20px rgba(3, 105, 161, 0.16);
+}
 
 /* Limpia las uniones internas del outline de Angular Material sin quitar el label flotante. */
 .mat-mdc-form-field .mdc-notched-outline__leading {
@@ -16,4 +161,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .mat-mdc-form-field .mdc-notched-outline__trailing {
   border-left: 0;
+}
+
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  background: rgba(255, 255, 255, 0.72);
 }

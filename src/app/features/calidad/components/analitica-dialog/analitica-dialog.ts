@@ -28,7 +28,7 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
       <mat-divider class="my-4"></mat-divider>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="rounded-2xl border bg-white p-3">
+        <div class="app-metric-card">
           <div class="text-xs text-slate-500">KPI calidad</div>
           <div class="text-2xl font-semibold">
             {{ pct(data.kpiCalidad) }}
@@ -36,12 +36,12 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
           <div class="text-xs text-slate-500">({{ n(data.kpiCalidad) }})</div>
         </div>
 
-        <div class="rounded-2xl border bg-white p-3 md:col-span-2">
+        <div class="app-metric-card md:col-span-2">
           <div class="text-xs text-slate-500">Flags</div>
           <div class="mt-2 flex flex-wrap gap-2">
             <span
               *ngFor="let f of (data.flags ?? [])"
-              class="text-xs rounded-full border px-2 py-1 bg-slate-50"
+              class="app-badge app-badge-neutral"
             >
               {{ f }}
             </span>
@@ -50,7 +50,7 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
         </div>
       </div>
 
-      <div class="mt-4 rounded-2xl border bg-white p-3">
+      <div class="app-panel mt-4 p-3">
         <div class="font-semibold mb-2">Base (valores)</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
           <div><span class="text-slate-500">Grasa:</span> {{ n(data.base?.grasa) }}</div>
@@ -65,15 +65,15 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
         </div>
       </div>
 
-      <div class="mt-4 rounded-2xl border bg-white p-3">
+      <div class="app-panel mt-4 p-3">
         <div class="font-semibold mb-2">Evaluación</div>
 
         <ng-container *ngIf="entries().length; else noEval">
           <div class="space-y-3">
-            <div *ngFor="let e of entries()" class="rounded-xl border p-3">
+            <div *ngFor="let e of entries()" class="app-metric-card">
               <div class="flex items-center justify-between gap-2">
                 <div class="font-semibold">{{ e.key }}</div>
-                <span class="text-xs rounded-full border px-2 py-1 bg-slate-50">{{ e.estado }}</span>
+                <span class="app-badge app-badge-neutral">{{ e.estado }}</span>
               </div>
 
               <ul class="mt-2 list-disc pl-5 text-sm text-slate-700" *ngIf="e.mensajes?.length">
