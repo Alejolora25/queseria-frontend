@@ -13,6 +13,11 @@ import { ProveedorResp } from '../../../../core/api/models';
 
 export interface ProveedorFormDialogData {
   proveedor?: ProveedorResp | null;
+  initialValues?: {
+    nombre?: string | null;
+    tipoIdentificacion?: string | null;
+    identificacion?: string | null;
+  };
 }
 
 @Component({
@@ -122,9 +127,15 @@ export class ProveedorFormDialogComponent {
   protected readonly busy = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    nombre: [this.proveedor?.nombre ?? '', Validators.required],
-    tipoIdentificacion: [this.proveedor?.tipoIdentificacion ?? 'CC', Validators.required],
-    identificacion: [this.proveedor?.identificacion ?? '', Validators.required],
+    nombre: [this.proveedor?.nombre ?? this.data.initialValues?.nombre ?? '', Validators.required],
+    tipoIdentificacion: [
+      this.proveedor?.tipoIdentificacion ?? this.data.initialValues?.tipoIdentificacion ?? 'CC',
+      Validators.required,
+    ],
+    identificacion: [
+      this.proveedor?.identificacion ?? this.data.initialValues?.identificacion ?? '',
+      Validators.required,
+    ],
   });
 
   protected guardar() {

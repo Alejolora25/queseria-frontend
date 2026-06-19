@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 
@@ -15,13 +16,15 @@ import { ProveedoresApi } from '../../../../core/api/proveedores.api';
 import { MuestrasApi } from '../../../../core/api/muestras.api';
 import { parseApiError } from '../../../../core/api/api-error';
 import { CrearMuestraReq, MuestraResp, ProveedorResp } from '../../../../core/api/models';
+import { ProveedorFormDialogComponent } from '../../../proveedores/components/proveedor-form-dialog/proveedor-form-dialog';
+import { ProveedorNoEncontradoDialogComponent } from '../../components/proveedor-no-encontrado-dialog/proveedor-no-encontrado-dialog';
 
-type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
+type UiState = 'idle' | 'searching' | 'submittingMuestra';
 
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
+    NgClass,
     ReactiveFormsModule,
 
     MatCardModule,
@@ -30,6 +33,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
     MatButtonModule,
     MatSelectModule,
     MatDividerModule,
+    MatDialogModule,
     MatProgressSpinnerModule,
     MatChipsModule,
   ],
@@ -37,9 +41,16 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
     <div class="space-y-4">
       <!-- Buscar proveedor -->
       <mat-card class="app-card">
-        <mat-card-content class="app-card-content">
-          <div class="flex items-start gap-4 flex-wrap">
-            <mat-form-field class="w-full sm:w-56" appearance="outline">
+        <mat-card-content class="app-card-content space-y-4">
+          <div>
+            <div class="text-sm font-semibold text-slate-900">Proveedor</div>
+            <p class="mt-1 text-sm text-slate-500">
+              Busca el proveedor por identificación antes de registrar la muestra.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
+            <mat-form-field class="w-full" appearance="outline">
               <mat-label>Tipo</mat-label>
               <mat-select [formControl]="buscarForm.controls.tipoIdentificacion">
                 <mat-option value="CC">CC</mat-option>
@@ -60,7 +71,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
             <button
               mat-raised-button
               color="primary"
-              class="mt-1"
+              class="w-full md:w-auto md:mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
@@ -77,7 +88,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
     
             <button
               mat-stroked-button
-              class="mt-1"
+              class="w-full md:w-auto md:mt-1"
               (click)="reset()"
               [disabled]="busy()"
               >
@@ -95,7 +106,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
           @if (proveedor()) {
             <div class="mt-4">
               <mat-divider />
-              <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div class="text-sm text-slate-600">Proveedor seleccionado</div>
                   <div class="font-semibold">
@@ -112,111 +123,59 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
         </mat-card-content>
       </mat-card>
     
-      <!-- Crear proveedor (si no existe) -->
-      @if (showCrearProveedor()) {
-        <mat-card class="app-card border-amber-200 bg-amber-50">
-          <mat-card-content class="app-card-content space-y-3">
-            <div class="font-semibold">No existe proveedor. Crear nuevo</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <mat-form-field appearance="outline">
-                <mat-label>Nombre</mat-label>
-                <input matInput [formControl]="crearProveedorForm.controls.nombre" />
-                @if (crearProveedorForm.controls.nombre.invalid) {
-                  <mat-error>Requerido</mat-error>
-                }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Tipo</mat-label>
-                <mat-select [formControl]="crearProveedorForm.controls.tipoIdentificacion">
-                  <mat-option value="CC">CC</mat-option>
-                  <mat-option value="NIT">NIT</mat-option>
-                </mat-select>
-                @if (crearProveedorForm.controls.tipoIdentificacion.invalid) {
-                  <mat-error>Requerido</mat-error>
-                }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Identificación</mat-label>
-                <input matInput [formControl]="crearProveedorForm.controls.identificacion" />
-                @if (crearProveedorForm.controls.identificacion.invalid) {
-                  <mat-error>Requerido</mat-error>
-                }
-              </mat-form-field>
-            </div>
-            @if (crearProveedorError()) {
-              <div class="app-alert app-alert-error bg-white">
-                <div class="font-medium">No se pudo crear</div>
-                <div>{{ crearProveedorError() }}</div>
-                @if (crearProveedorFields()) {
-                  <div class="mt-2 text-xs text-slate-700">
-                    <div class="font-medium">Detalles:</div>
-                    <ul class="list-disc pl-5">
-                      @for (item of fieldErrorsList(crearProveedorFields()!); track item) {
-                        <li>
-                          <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
-                        </li>
-                      }
-                    </ul>
-                  </div>
-                }
-              </div>
-            }
-            <div class="flex gap-2">
-              <button
-                mat-raised-button
-                color="primary"
-                (click)="crearProveedor()"
-                [disabled]="crearProveedorForm.invalid || busy()"
-                >
-                <span class="inline-flex items-center gap-2">
-                  @if (state() === 'creatingProveedor') {
-                    <mat-progress-spinner
-                      diameter="18"
-                      mode="indeterminate"
-                      />
-                  }
-                  Crear proveedor
-                </span>
-              </button>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      }
-    
       <!-- Form muestra -->
       @if (proveedor()) {
         <mat-card class="app-card">
           <mat-card-content class="app-card-content space-y-4">
-            <div class="font-semibold">Datos de la muestra</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-900">Datos de la muestra</div>
+              <p class="mt-1 text-sm text-slate-500">
+                Completa los valores disponibles. Los campos requeridos son los que usa la evaluación de calidad.
+              </p>
+            </div>
             <form class="space-y-4" [formGroup]="muestraForm">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <mat-form-field appearance="outline">
-                  <mat-label>Fecha de muestra (ISO)</mat-label>
-                  <input
-                    matInput
-                    [formControl]="muestraForm.controls.fechaMuestra"
-                    placeholder="2026-01-12T08:00:00-05:00"
-                    />
-                    <mat-hint>OffsetDateTime. Ej: -05:00</mat-hint>
-                    @if (muestraForm.controls.fechaMuestra.invalid) {
-                      <mat-error>Requerido</mat-error>
-                    }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Volumen (L)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.volumenLitros" />
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Precio/Litro</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.precioLitro" />
-                  </mat-form-field>
+              <section class="app-panel p-4">
+                <div class="mb-3">
+                  <div class="text-sm font-semibold text-slate-900">Datos generales</div>
+                  <div class="text-xs text-slate-500">Fecha, volumen, precio y observaciones.</div>
                 </div>
-                <mat-form-field class="w-full" appearance="outline">
-                  <mat-label>Observaciones</mat-label>
-                  <textarea matInput rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
-                </mat-form-field>
-                <mat-divider />
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fecha de muestra (ISO)</mat-label>
+                    <input
+                      matInput
+                      [formControl]="muestraForm.controls.fechaMuestra"
+                      placeholder="2026-01-12T08:00:00-05:00"
+                      />
+                      <mat-hint>OffsetDateTime. Ej: -05:00</mat-hint>
+                      @if (muestraForm.controls.fechaMuestra.invalid) {
+                        <mat-error>Requerido</mat-error>
+                      }
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Volumen (L)</mat-label>
+                      <input matInput type="number" [formControl]="muestraForm.controls.volumenLitros" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Precio/Litro</mat-label>
+                      <input matInput type="number" [formControl]="muestraForm.controls.precioLitro" />
+                    </mat-form-field>
+                  </div>
+
+                  <mat-form-field class="w-full" appearance="outline">
+                    <mat-label>Observaciones</mat-label>
+                    <textarea matInput rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
+                  </mat-form-field>
+              </section>
+
+              <section class="app-panel p-4">
+                <div class="mb-3">
+                  <div class="text-sm font-semibold text-slate-900">Composición</div>
+                  <div class="text-xs text-slate-500">Grasa, proteína, lactosa y sólidos totales.</div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
                   <mat-form-field appearance="outline">
                     <mat-label>Grasa (%)</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.grasa" />
@@ -243,7 +202,15 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                     }
                   </mat-form-field>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              </section>
+
+              <section class="app-panel p-4">
+                <div class="mb-3">
+                  <div class="text-sm font-semibold text-slate-900">Físico-químico</div>
+                  <div class="text-xs text-slate-500">Densidad, acidez y temperatura de la muestra.</div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <mat-form-field appearance="outline">
                     <mat-label>Densidad (g/mL)</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.densidad" />
@@ -266,7 +233,15 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                     }
                   </mat-form-field>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+              </section>
+
+              <section class="app-panel p-4">
+                <div class="mb-3">
+                  <div class="text-sm font-semibold text-slate-900">Higiene</div>
+                  <div class="text-xs text-slate-500">Recuentos bacterianos y células somáticas.</div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <mat-form-field appearance="outline">
                     <mat-label>UFC Bacterias</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.ufcBacterias" />
@@ -275,6 +250,16 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                     <mat-label>CC Somáticas</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.ccSomaticas" />
                   </mat-form-field>
+                </div>
+              </section>
+
+              <section class="app-panel p-4">
+                <div class="mb-3">
+                  <div class="text-sm font-semibold text-slate-900">Opcionales</div>
+                  <div class="text-xs text-slate-500">Valores calculados o complementarios si están disponibles.</div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <mat-form-field appearance="outline">
                     <mat-label>SNG (opcional)</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.sng" />
@@ -284,6 +269,8 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                     <input matInput type="number" [formControl]="muestraForm.controls.aguaPct" />
                   </mat-form-field>
                 </div>
+              </section>
+
                 @if (muestraError()) {
                   <div class="app-alert app-alert-error">
                     <div class="font-medium">No se pudo registrar</div>
@@ -305,6 +292,7 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                 <button
                   mat-raised-button
                   color="primary"
+                  class="w-full md:w-auto"
                   (click)="registrarMuestra()"
                   [disabled]="muestraForm.invalid || busy()"
                   >
@@ -326,12 +314,28 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
         <!-- Resultado evaluación -->
         @if (muestraCreada()) {
           <mat-card class="app-card border-emerald-200 bg-emerald-50">
-            <mat-card-content class="app-card-content space-y-3">
-              <div class="font-semibold">Muestra registrada ✅</div>
-              <div class="text-sm text-slate-700">
-                ID muestra: <span class="font-medium">{{ muestraCreada()!.id }}</span>
-                — Fecha: {{ muestraCreada()!.fechaMuestra }}
+            <mat-card-content class="app-card-content space-y-4">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div class="text-lg font-semibold text-emerald-900">Muestra registrada</div>
+                  <p class="mt-1 text-sm text-emerald-800">
+                    La muestra quedó guardada y la evaluación fue generada correctamente.
+                  </p>
+                </div>
+                <span class="app-badge app-badge-success">Registrada</span>
               </div>
+
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="app-metric-card">
+                  <div class="text-xs text-slate-500">ID muestra</div>
+                  <div class="mt-1 font-semibold">{{ muestraCreada()!.id }}</div>
+                </div>
+                <div class="app-metric-card">
+                  <div class="text-xs text-slate-500">Fecha</div>
+                  <div class="mt-1 break-words font-semibold">{{ muestraCreada()!.fechaMuestra }}</div>
+                </div>
+              </div>
+
               @if (muestraCreada()!.evaluacion?.porParametro; as por) {
                 <div>
                   <div class="font-medium mt-2">Evaluación</div>
@@ -383,15 +387,12 @@ export class CargaMuestraPageComponent {
   private fb = inject(FormBuilder);
   private proveedoresApi = inject(ProveedoresApi);
   private muestrasApi = inject(MuestrasApi);
+  private dialog = inject(MatDialog);
 
   // estado UI
   readonly state = signal<UiState>('idle');
   readonly proveedor = signal<ProveedorResp | null>(null);
   readonly bannerError = signal<string | null>(null);
-
-  readonly showCrearProveedor = signal(false);
-  readonly crearProveedorError = signal<string | null>(null);
-  readonly crearProveedorFields = signal<Record<string, string[]> | null>(null);
 
   readonly muestraError = signal<string | null>(null);
   readonly muestraFields = signal<Record<string, string[]> | null>(null);
@@ -401,12 +402,6 @@ export class CargaMuestraPageComponent {
 
   // forms
   readonly buscarForm = this.fb.nonNullable.group({
-    tipoIdentificacion: ['CC', Validators.required],
-    identificacion: ['', Validators.required],
-  });
-
-  readonly crearProveedorForm = this.fb.nonNullable.group({
-    nombre: ['', Validators.required],
     tipoIdentificacion: ['CC', Validators.required],
     identificacion: ['', Validators.required],
   });
@@ -442,15 +437,11 @@ export class CargaMuestraPageComponent {
     this.state.set('idle');
     this.proveedor.set(null);
     this.bannerError.set(null);
-    this.showCrearProveedor.set(false);
-    this.crearProveedorError.set(null);
-    this.crearProveedorFields.set(null);
     this.muestraError.set(null);
     this.muestraFields.set(null);
     this.muestraCreada.set(null);
 
     this.buscarForm.reset({ tipoIdentificacion: 'CC', identificacion: '' });
-    this.crearProveedorForm.reset({ nombre: '', tipoIdentificacion: 'CC', identificacion: '' });
     this.muestraForm.patchValue({ fechaMuestra: this.defaultNowOffsetIso() });
   }
 
@@ -463,21 +454,12 @@ export class CargaMuestraPageComponent {
 
     if (!ident) return;
 
-    // pre-llenar crear proveedor por si no existe
-    this.crearProveedorForm.patchValue({
-      tipoIdentificacion: tipo,
-      identificacion: ident,
-    });
-
     this.state.set('searching');
 
     this.proveedoresApi.porIdentificacion(ident).subscribe({
       next: (p) => {
         this.state.set('idle');
         this.proveedor.set(p);
-        this.showCrearProveedor.set(false);
-        this.crearProveedorError.set(null);
-        this.crearProveedorFields.set(null);
       },
       error: (err) => {
         // si es 404 típicamente: proveedor no existe
@@ -486,42 +468,14 @@ export class CargaMuestraPageComponent {
         const parsed = parseApiError(err);
         // si backend manda 404 con ResponseStatusException
         if (parsed.status === 404) {
-          this.showCrearProveedor.set(true);
           this.bannerError.set(null);
+          this.confirmarProveedorNoEncontrado(tipo, ident);
           return;
         }
 
         this.bannerError.set(parsed.message);
       },
     });
-  }
-
-  crearProveedor() {
-    this.crearProveedorError.set(null);
-    this.crearProveedorFields.set(null);
-
-    const v = this.crearProveedorForm.getRawValue();
-    this.state.set('creatingProveedor');
-
-    this.proveedoresApi
-      .crear({
-        nombre: v.nombre.trim(),
-        tipoIdentificacion: v.tipoIdentificacion,
-        identificacion: v.identificacion.trim(),
-      })
-      .subscribe({
-        next: (p) => {
-          this.state.set('idle');
-          this.proveedor.set(p);
-          this.showCrearProveedor.set(false);
-        },
-        error: (err) => {
-          this.state.set('idle');
-          const parsed = parseApiError(err);
-          this.crearProveedorError.set(parsed.message);
-          this.crearProveedorFields.set(parsed.fields ?? null);
-        },
-      });
   }
 
   registrarMuestra() {
@@ -607,6 +561,41 @@ export class CargaMuestraPageComponent {
 
   fieldErrorsList(fields: Record<string, string[]>) {
     return Object.entries(fields).map(([field, messages]) => ({ field, messages }));
+  }
+
+  private confirmarProveedorNoEncontrado(tipoIdentificacion: string, identificacion: string) {
+    const ref = this.dialog.open(ProveedorNoEncontradoDialogComponent, {
+      data: { tipoIdentificacion, identificacion },
+      width: 'min(92vw, 520px)',
+      maxWidth: '92vw',
+      autoFocus: 'first-tabbable',
+    });
+
+    ref.afterClosed().subscribe((action) => {
+      if (action !== 'crear') return;
+      this.abrirCrearProveedor(tipoIdentificacion, identificacion);
+    });
+  }
+
+  private abrirCrearProveedor(tipoIdentificacion: string, identificacion: string) {
+    const ref = this.dialog.open(ProveedorFormDialogComponent, {
+      data: {
+        initialValues: {
+          tipoIdentificacion,
+          identificacion,
+        },
+      },
+      width: 'min(92vw, 560px)',
+      maxWidth: '92vw',
+      autoFocus: 'first-tabbable',
+    });
+
+    ref.afterClosed().subscribe((proveedor?: ProveedorResp) => {
+      if (!proveedor) return;
+      this.proveedor.set(proveedor);
+      this.bannerError.set(null);
+      this.muestraCreada.set(null);
+    });
   }
 
   private nullIfEmptyNumber(v: unknown): number | null {
