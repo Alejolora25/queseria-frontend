@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+﻿/* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
 
 html {
@@ -199,4 +199,45 @@ body {
   .historico-mobile-list {
     display: none !important;
   }
+}
+.dashboard-kpi-card {
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.dashboard-kpi-progress {
+  height: 0.875rem;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(3, 105, 161, 0.14);
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.dashboard-kpi-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0284c7, #10b981);
+  transition: width 240ms ease;
+}
+
+.dashboard-donut {
+  display: grid;
+  width: min(13rem, 70vw);
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08), var(--app-shadow-soft);
+}
+
+.dashboard-donut-inner {
+  display: grid;
+  width: 68%;
+  aspect-ratio: 1;
+  place-items: center;
+  align-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--app-border);
+  background: rgba(255, 255, 255, 0.94);
+  text-align: center;
 }
