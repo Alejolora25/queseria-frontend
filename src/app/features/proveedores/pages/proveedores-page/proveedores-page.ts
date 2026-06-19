@@ -38,9 +38,7 @@ type UiState = 'idle' | 'loading' | 'saving';
   ],
   template: `
     <div class="space-y-4">
-      <div class="flex items-center justify-between gap-2 flex-wrap">
-        <h2 class="text-xl font-semibold">Proveedores</h2>
-
+      <div class="flex items-center justify-end gap-2 flex-wrap">
         <div class="flex gap-2">
           <button mat-stroked-button (click)="nuevo()" [disabled]="busy()">Nuevo proveedor</button>
           <button mat-raised-button color="primary" (click)="buscar(0)" [disabled]="busy()">

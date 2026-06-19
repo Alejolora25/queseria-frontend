@@ -32,8 +32,6 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
   ],
   template: `
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold">Resumen</h2>
-
       <!-- Proveedor -->
       <mat-card class="rounded-2xl">
         <mat-card-content class="p-4 space-y-3">

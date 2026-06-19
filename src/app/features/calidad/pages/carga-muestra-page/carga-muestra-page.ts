@@ -35,8 +35,6 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
   ],
   template: `
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold">Cargar muestra</h2>
-
       <!-- Buscar proveedor -->
       <mat-card class="rounded-2xl">
         <mat-card-content class="p-4">
