@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -20,7 +20,6 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -28,8 +27,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
     MatButtonModule,
     MatSelectModule,
     MatDividerModule,
-    MatProgressSpinnerModule,
-  ],
+    MatProgressSpinnerModule
+],
   template: `
     <div class="space-y-4">
       <!-- Proveedor -->
@@ -43,159 +42,164 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingResumen';
                 <mat-option value="NIT">NIT</mat-option>
               </mat-select>
             </mat-form-field>
-
+    
             <mat-form-field class="flex-1 min-w-[240px]" appearance="outline">
               <mat-label>Identificación</mat-label>
               <input matInput [formControl]="buscarForm.controls.identificacion" placeholder="Ej: NIT-123" />
             </mat-form-field>
-
+    
             <button
               mat-raised-button
               color="primary"
               class="mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
-            >
+              >
               <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner *ngIf="state() === 'searchingProveedor'" diameter="18" mode="indeterminate" />
+                @if (state() === 'searchingProveedor') {
+                  <mat-progress-spinner diameter="18" mode="indeterminate" />
+                }
                 Buscar
               </span>
             </button>
-
+    
             <button mat-stroked-button class="mt-1" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
-
-          <div *ngIf="bannerError()" class="app-alert app-alert-error">
-            <div class="font-medium">Error</div>
-            <div>{{ bannerError() }}</div>
-          </div>
-
-          <div *ngIf="proveedor()" class="pt-2">
-            <mat-divider />
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div class="text-sm text-slate-600">Proveedor</div>
-                <div class="font-semibold">
-                  {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
-                </div>
-              </div>
-              <span class="app-badge app-badge-neutral">ID: {{ proveedor()!.id }}</span>
+    
+          @if (bannerError()) {
+            <div class="app-alert app-alert-error">
+              <div class="font-medium">Error</div>
+              <div>{{ bannerError() }}</div>
             </div>
-          </div>
+          }
+    
+          @if (proveedor()) {
+            <div class="pt-2">
+              <mat-divider />
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div class="text-sm text-slate-600">Proveedor</div>
+                  <div class="font-semibold">
+                    {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
+                  </div>
+                </div>
+                <span class="app-badge app-badge-neutral">ID: {{ proveedor()!.id }}</span>
+              </div>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
-
+    
       <!-- Filtros -->
-      <mat-card *ngIf="proveedor()" class="app-card">
-        <mat-card-content class="app-card-content space-y-4">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="font-semibold">Rango</div>
-
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="cargarResumen()"
-              [disabled]="busy() || filtrosForm.invalid"
-            >
-              <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner *ngIf="state() === 'loadingResumen'" diameter="18" mode="indeterminate" />
-                Consultar
-              </span>
-            </button>
-          </div>
-
-          <form class="grid grid-cols-1 md:grid-cols-2 gap-3" [formGroup]="filtrosForm">
-            <mat-form-field appearance="outline">
-              <mat-label>Desde (Instant ISO - Z)</mat-label>
-              <input matInput [formControl]="filtrosForm.controls.desde" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Hasta (Instant ISO - Z)</mat-label>
-              <input matInput [formControl]="filtrosForm.controls.hasta" />
-            </mat-form-field>
-          </form>
-
-          <div *ngIf="resumenError()" class="app-alert app-alert-error">
-            <div class="font-medium">No se pudo cargar</div>
-            <div>{{ resumenError() }}</div>
-          </div>
-
-          <!-- Resumen -->
-          <div *ngIf="resumen()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div class="app-metric-card">
-              <div class="text-sm text-slate-600">KPI promedio</div>
-              <div class="text-3xl font-semibold mt-1">{{ pct(resumen()!.promedios.kpi) }}</div>
-              <div class="text-xs text-slate-500 mt-1">1.00 = 100%</div>
+      @if (proveedor()) {
+        <mat-card class="app-card">
+          <mat-card-content class="app-card-content space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="font-semibold">Rango</div>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="cargarResumen()"
+                [disabled]="busy() || filtrosForm.invalid"
+                >
+                <span class="inline-flex items-center gap-2">
+                  @if (state() === 'loadingResumen') {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                  }
+                  Consultar
+                </span>
+              </button>
             </div>
-
-            <div class="app-metric-card md:col-span-2">
-              <div class="text-sm text-slate-600">Promedios</div>
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-3" [formGroup]="filtrosForm">
+              <mat-form-field appearance="outline">
+                <mat-label>Desde (Instant ISO - Z)</mat-label>
+                <input matInput [formControl]="filtrosForm.controls.desde" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Hasta (Instant ISO - Z)</mat-label>
+                <input matInput [formControl]="filtrosForm.controls.hasta" />
+              </mat-form-field>
+            </form>
+            @if (resumenError()) {
+              <div class="app-alert app-alert-error">
+                <div class="font-medium">No se pudo cargar</div>
+                <div>{{ resumenError() }}</div>
+              </div>
+            }
+            <!-- Resumen -->
+            @if (resumen()) {
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">Grasa</div>
-                  <div class="font-semibold">{{ n(resumen()!.promedios.grasa) }}</div>
+                  <div class="text-sm text-slate-600">KPI promedio</div>
+                  <div class="text-3xl font-semibold mt-1">{{ pct(resumen()!.promedios.kpi) }}</div>
+                  <div class="text-xs text-slate-500 mt-1">1.00 = 100%</div>
                 </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">Proteína</div>
-                  <div class="font-semibold">{{ n(resumen()!.promedios.proteina) }}</div>
+                <div class="app-metric-card md:col-span-2">
+                  <div class="text-sm text-slate-600">Promedios</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">Grasa</div>
+                      <div class="font-semibold">{{ n(resumen()!.promedios.grasa) }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">Proteína</div>
+                      <div class="font-semibold">{{ n(resumen()!.promedios.proteina) }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">ST</div>
+                      <div class="font-semibold">{{ n(resumen()!.promedios.solidosTotales) }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">SNG</div>
+                      <div class="font-semibold">{{ n(resumen()!.promedios.sng) }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">KPI</div>
+                      <div class="font-semibold">{{ n(resumen()!.promedios.kpi) }}</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">ST</div>
-                  <div class="font-semibold">{{ n(resumen()!.promedios.solidosTotales) }}</div>
-                </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">SNG</div>
-                  <div class="font-semibold">{{ n(resumen()!.promedios.sng) }}</div>
-                </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">KPI</div>
-                  <div class="font-semibold">{{ n(resumen()!.promedios.kpi) }}</div>
+                <div class="app-metric-card md:col-span-3">
+                  <div class="text-sm text-slate-600">Distribución de estados</div>
+                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-3">
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">ACEPTABLE</div>
+                      <div class="font-semibold">{{ resumen()!.distribucionEstados.ACEPTABLE }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">ALERTA</div>
+                      <div class="font-semibold">{{ resumen()!.distribucionEstados.ALERTA }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">RECHAZAR</div>
+                      <div class="font-semibold">{{ resumen()!.distribucionEstados.RECHAZAR }}</div>
+                    </div>
+                    <div class="app-metric-card">
+                      <div class="text-xs text-slate-500">TOTAL</div>
+                      <div class="font-semibold">{{ resumen()!.distribucionEstados.totalEstados }}</div>
+                    </div>
+                  </div>
+                  <!-- barra simple -->
+                  <div class="mt-4 h-3 rounded-full overflow-hidden border bg-slate-50">
+                    <div class="h-full flex">
+                      <div class="h-full bg-emerald-500/70" [style.width.%]="pctPart('ACEPTABLE')"></div>
+                      <div class="h-full bg-amber-500/70" [style.width.%]="pctPart('ALERTA')"></div>
+                      <div class="h-full bg-red-500/70" [style.width.%]="pctPart('RECHAZAR')"></div>
+                    </div>
+                  </div>
+                  <div class="text-xs text-slate-500 mt-2">
+                    (Verde=ACEPTABLE, Amarillo=ALERTA, Rojo=RECHAZAR)
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="app-metric-card md:col-span-3">
-              <div class="text-sm text-slate-600">Distribución de estados</div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-3">
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">ACEPTABLE</div>
-                  <div class="font-semibold">{{ resumen()!.distribucionEstados.ACEPTABLE }}</div>
-                </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">ALERTA</div>
-                  <div class="font-semibold">{{ resumen()!.distribucionEstados.ALERTA }}</div>
-                </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">RECHAZAR</div>
-                  <div class="font-semibold">{{ resumen()!.distribucionEstados.RECHAZAR }}</div>
-                </div>
-                <div class="app-metric-card">
-                  <div class="text-xs text-slate-500">TOTAL</div>
-                  <div class="font-semibold">{{ resumen()!.distribucionEstados.totalEstados }}</div>
-                </div>
-              </div>
-
-              <!-- barra simple -->
-              <div class="mt-4 h-3 rounded-full overflow-hidden border bg-slate-50">
-                <div class="h-full flex">
-                  <div class="h-full bg-emerald-500/70" [style.width.%]="pctPart('ACEPTABLE')"></div>
-                  <div class="h-full bg-amber-500/70" [style.width.%]="pctPart('ALERTA')"></div>
-                  <div class="h-full bg-red-500/70" [style.width.%]="pctPart('RECHAZAR')"></div>
-                </div>
-              </div>
-              <div class="text-xs text-slate-500 mt-2">
-                (Verde=ACEPTABLE, Amarillo=ALERTA, Rojo=RECHAZAR)
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
-  `,
+    `,
 })
 export class DashboardResumenPageComponent {
   private fb = inject(FormBuilder);

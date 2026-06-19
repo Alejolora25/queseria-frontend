@@ -46,303 +46,330 @@ type UiState = 'idle' | 'searching' | 'creatingProveedor' | 'submittingMuestra';
                 <mat-option value="NIT">NIT</mat-option>
               </mat-select>
             </mat-form-field>
-
+    
             <mat-form-field class="flex-1 min-w-[240px]" appearance="outline">
               <mat-label>Identificación</mat-label>
               <input matInput [formControl]="buscarForm.controls.identificacion" placeholder="Ej: 123456789" />
-              <mat-error *ngIf="buscarForm.controls.identificacion.invalid">
-                La identificación es requerida
-              </mat-error>
+              @if (buscarForm.controls.identificacion.invalid) {
+                <mat-error>
+                  La identificación es requerida
+                </mat-error>
+              }
             </mat-form-field>
-
+    
             <button
               mat-raised-button
               color="primary"
               class="mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
-            >
+              >
               <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner
-                  *ngIf="state() === 'searching'"
-                  diameter="18"
-                  mode="indeterminate"
-                />
+                @if (state() === 'searching') {
+                  <mat-progress-spinner
+                    diameter="18"
+                    mode="indeterminate"
+                    />
+                }
                 Buscar
               </span>
             </button>
-
+    
             <button
               mat-stroked-button
               class="mt-1"
               (click)="reset()"
               [disabled]="busy()"
-            >
+              >
               Limpiar
             </button>
           </div>
-
-          <div *ngIf="bannerError()" class="app-alert app-alert-error mt-3">
-            <div class="font-medium">Error</div>
-            <div>{{ bannerError() }}</div>
-          </div>
-
-          <div *ngIf="proveedor()" class="mt-4">
-            <mat-divider />
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div class="text-sm text-slate-600">Proveedor seleccionado</div>
-                <div class="font-semibold">
-                  {{ proveedor()!.nombre }} —
-                  {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
-                </div>
-              </div>
-              <span class="app-badge app-badge-neutral">
-                ID: {{ proveedor()!.id }}
-              </span>
+    
+          @if (bannerError()) {
+            <div class="app-alert app-alert-error mt-3">
+              <div class="font-medium">Error</div>
+              <div>{{ bannerError() }}</div>
             </div>
-          </div>
+          }
+    
+          @if (proveedor()) {
+            <div class="mt-4">
+              <mat-divider />
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div class="text-sm text-slate-600">Proveedor seleccionado</div>
+                  <div class="font-semibold">
+                    {{ proveedor()!.nombre }} —
+                    {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
+                  </div>
+                </div>
+                <span class="app-badge app-badge-neutral">
+                  ID: {{ proveedor()!.id }}
+                </span>
+              </div>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
-
+    
       <!-- Crear proveedor (si no existe) -->
-      <mat-card *ngIf="showCrearProveedor()" class="app-card border-amber-200 bg-amber-50">
-        <mat-card-content class="app-card-content space-y-3">
-          <div class="font-semibold">No existe proveedor. Crear nuevo</div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <mat-form-field appearance="outline">
-              <mat-label>Nombre</mat-label>
-              <input matInput [formControl]="crearProveedorForm.controls.nombre" />
-              <mat-error *ngIf="crearProveedorForm.controls.nombre.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [formControl]="crearProveedorForm.controls.tipoIdentificacion">
-                <mat-option value="CC">CC</mat-option>
-                <mat-option value="NIT">NIT</mat-option>
-              </mat-select>
-              <mat-error *ngIf="crearProveedorForm.controls.tipoIdentificacion.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Identificación</mat-label>
-              <input matInput [formControl]="crearProveedorForm.controls.identificacion" />
-              <mat-error *ngIf="crearProveedorForm.controls.identificacion.invalid">Requerido</mat-error>
-            </mat-form-field>
-          </div>
-
-          <div *ngIf="crearProveedorError()" class="app-alert app-alert-error bg-white">
-            <div class="font-medium">No se pudo crear</div>
-            <div>{{ crearProveedorError() }}</div>
-
-            <div *ngIf="crearProveedorFields()" class="mt-2 text-xs text-slate-700">
-              <div class="font-medium">Detalles:</div>
-              <ul class="list-disc pl-5">
-                <li *ngFor="let item of fieldErrorsList(crearProveedorFields()!)">
-                  <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
-                </li>
-              </ul>
+      @if (showCrearProveedor()) {
+        <mat-card class="app-card border-amber-200 bg-amber-50">
+          <mat-card-content class="app-card-content space-y-3">
+            <div class="font-semibold">No existe proveedor. Crear nuevo</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput [formControl]="crearProveedorForm.controls.nombre" />
+                @if (crearProveedorForm.controls.nombre.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+                <mat-select [formControl]="crearProveedorForm.controls.tipoIdentificacion">
+                  <mat-option value="CC">CC</mat-option>
+                  <mat-option value="NIT">NIT</mat-option>
+                </mat-select>
+                @if (crearProveedorForm.controls.tipoIdentificacion.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Identificación</mat-label>
+                <input matInput [formControl]="crearProveedorForm.controls.identificacion" />
+                @if (crearProveedorForm.controls.identificacion.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
             </div>
-          </div>
-
-          <div class="flex gap-2">
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="crearProveedor()"
-              [disabled]="crearProveedorForm.invalid || busy()"
-            >
-              <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner
-                  *ngIf="state() === 'creatingProveedor'"
-                  diameter="18"
-                  mode="indeterminate"
-                />
-                Crear proveedor
-              </span>
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
+            @if (crearProveedorError()) {
+              <div class="app-alert app-alert-error bg-white">
+                <div class="font-medium">No se pudo crear</div>
+                <div>{{ crearProveedorError() }}</div>
+                @if (crearProveedorFields()) {
+                  <div class="mt-2 text-xs text-slate-700">
+                    <div class="font-medium">Detalles:</div>
+                    <ul class="list-disc pl-5">
+                      @for (item of fieldErrorsList(crearProveedorFields()!); track item) {
+                        <li>
+                          <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
+            <div class="flex gap-2">
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="crearProveedor()"
+                [disabled]="crearProveedorForm.invalid || busy()"
+                >
+                <span class="inline-flex items-center gap-2">
+                  @if (state() === 'creatingProveedor') {
+                    <mat-progress-spinner
+                      diameter="18"
+                      mode="indeterminate"
+                      />
+                  }
+                  Crear proveedor
+                </span>
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    
       <!-- Form muestra -->
-      <mat-card *ngIf="proveedor()" class="app-card">
-        <mat-card-content class="app-card-content space-y-4">
-          <div class="font-semibold">Datos de la muestra</div>
-
-          <form class="space-y-4" [formGroup]="muestraForm">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <mat-form-field appearance="outline">
-                <mat-label>Fecha de muestra (ISO)</mat-label>
-                <input
-                  matInput
-                  [formControl]="muestraForm.controls.fechaMuestra"
-                  placeholder="2026-01-12T08:00:00-05:00"
-                />
-                <mat-hint>OffsetDateTime. Ej: -05:00</mat-hint>
-                <mat-error *ngIf="muestraForm.controls.fechaMuestra.invalid">Requerido</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Volumen (L)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.volumenLitros" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Precio/Litro</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.precioLitro" />
-              </mat-form-field>
-            </div>
-
-            <mat-form-field class="w-full" appearance="outline">
-              <mat-label>Observaciones</mat-label>
-              <textarea matInput rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
-            </mat-form-field>
-
-            <mat-divider />
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <mat-form-field appearance="outline">
-                <mat-label>Grasa (%)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.grasa" />
-                <mat-error *ngIf="muestraForm.controls.grasa.invalid">Requerido</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Proteína (%)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.proteina" />
-                <mat-error *ngIf="muestraForm.controls.proteina.invalid">Requerido</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Lactosa (%)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.lactosa" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Sólidos Totales (%)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.solidosTotales" />
-                <mat-error *ngIf="muestraForm.controls.solidosTotales.invalid">Requerido</mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <mat-form-field appearance="outline">
-                <mat-label>Densidad (g/mL)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.densidad" />
-                <mat-error *ngIf="muestraForm.controls.densidad.invalid">Requerido</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Acidez Dornic (°D)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.acidezDornic" />
-                <mat-error *ngIf="muestraForm.controls.acidezDornic.invalid">Requerido</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Temperatura (°C)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.temperaturaC" />
-                <mat-error *ngIf="muestraForm.controls.temperaturaC.invalid">Requerido</mat-error>
-              </mat-form-field>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <mat-form-field appearance="outline">
-                <mat-label>UFC Bacterias</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.ufcBacterias" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>CC Somáticas</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.ccSomaticas" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>SNG (opcional)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.sng" />
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Agua % (opcional)</mat-label>
-                <input matInput type="number" [formControl]="muestraForm.controls.aguaPct" />
-              </mat-form-field>
-            </div>
-
-            <div *ngIf="muestraError()" class="app-alert app-alert-error">
-              <div class="font-medium">No se pudo registrar</div>
-              <div>{{ muestraError() }}</div>
-
-              <div *ngIf="muestraFields()" class="mt-2 text-xs text-slate-700">
-                <div class="font-medium">Detalles:</div>
-                <ul class="list-disc pl-5">
-                  <li *ngFor="let item of fieldErrorsList(muestraFields()!)">
-                    <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="registrarMuestra()"
-              [disabled]="muestraForm.invalid || busy()"
-            >
-              <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner
-                  *ngIf="state() === 'submittingMuestra'"
-                  diameter="18"
-                  mode="indeterminate"
-                />
-                Registrar muestra
-              </span>
-            </button>
-          </form>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Resultado evaluación -->
-      <mat-card *ngIf="muestraCreada()" class="app-card border-emerald-200 bg-emerald-50">
-        <mat-card-content class="app-card-content space-y-3">
-          <div class="font-semibold">Muestra registrada ✅</div>
-          <div class="text-sm text-slate-700">
-            ID muestra: <span class="font-medium">{{ muestraCreada()!.id }}</span>
-            — Fecha: {{ muestraCreada()!.fechaMuestra }}
-          </div>
-
-          <div *ngIf="muestraCreada()!.evaluacion?.porParametro as por">
-            <div class="font-medium mt-2">Evaluación</div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-              <div
-                *ngFor="let k of objectKeys(por)"
-                class="app-metric-card"
-              >
-                <div class="flex items-center justify-between gap-2">
-                  <div class="font-medium">{{ prettyKey(k) }}</div>
-                  <mat-chip-set>
-                    <mat-chip [ngClass]="chipClass(por[k].estado)">
-                      {{ por[k].estado }}
-                    </mat-chip>
-                  </mat-chip-set>
+      @if (proveedor()) {
+        <mat-card class="app-card">
+          <mat-card-content class="app-card-content space-y-4">
+            <div class="font-semibold">Datos de la muestra</div>
+            <form class="space-y-4" [formGroup]="muestraForm">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha de muestra (ISO)</mat-label>
+                  <input
+                    matInput
+                    [formControl]="muestraForm.controls.fechaMuestra"
+                    placeholder="2026-01-12T08:00:00-05:00"
+                    />
+                    <mat-hint>OffsetDateTime. Ej: -05:00</mat-hint>
+                    @if (muestraForm.controls.fechaMuestra.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Volumen (L)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.volumenLitros" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Precio/Litro</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.precioLitro" />
+                  </mat-form-field>
                 </div>
-
-                <ul *ngIf="por[k].mensajes?.length" class="mt-2 list-disc pl-5 text-sm text-slate-700">
-                  <li *ngFor="let m of por[k].mensajes">{{ m }}</li>
-                </ul>
-
-                <div *ngIf="!por[k].mensajes?.length" class="mt-2 text-sm text-slate-500">
-                  Sin observaciones
+                <mat-form-field class="w-full" appearance="outline">
+                  <mat-label>Observaciones</mat-label>
+                  <textarea matInput rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
+                </mat-form-field>
+                <mat-divider />
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Grasa (%)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.grasa" />
+                    @if (muestraForm.controls.grasa.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Proteína (%)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.proteina" />
+                    @if (muestraForm.controls.proteina.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Lactosa (%)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.lactosa" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Sólidos Totales (%)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.solidosTotales" />
+                    @if (muestraForm.controls.solidosTotales.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Densidad (g/mL)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.densidad" />
+                    @if (muestraForm.controls.densidad.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Acidez Dornic (°D)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.acidezDornic" />
+                    @if (muestraForm.controls.acidezDornic.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Temperatura (°C)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.temperaturaC" />
+                    @if (muestraForm.controls.temperaturaC.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <mat-form-field appearance="outline">
+                    <mat-label>UFC Bacterias</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.ufcBacterias" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>CC Somáticas</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.ccSomaticas" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>SNG (opcional)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.sng" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Agua % (opcional)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.aguaPct" />
+                  </mat-form-field>
+                </div>
+                @if (muestraError()) {
+                  <div class="app-alert app-alert-error">
+                    <div class="font-medium">No se pudo registrar</div>
+                    <div>{{ muestraError() }}</div>
+                    @if (muestraFields()) {
+                      <div class="mt-2 text-xs text-slate-700">
+                        <div class="font-medium">Detalles:</div>
+                        <ul class="list-disc pl-5">
+                          @for (item of fieldErrorsList(muestraFields()!); track item) {
+                            <li>
+                              <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  </div>
+                }
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="registrarMuestra()"
+                  [disabled]="muestraForm.invalid || busy()"
+                  >
+                  <span class="inline-flex items-center gap-2">
+                    @if (state() === 'submittingMuestra') {
+                      <mat-progress-spinner
+                        diameter="18"
+                        mode="indeterminate"
+                        />
+                    }
+                    Registrar muestra
+                  </span>
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        }
+    
+        <!-- Resultado evaluación -->
+        @if (muestraCreada()) {
+          <mat-card class="app-card border-emerald-200 bg-emerald-50">
+            <mat-card-content class="app-card-content space-y-3">
+              <div class="font-semibold">Muestra registrada ✅</div>
+              <div class="text-sm text-slate-700">
+                ID muestra: <span class="font-medium">{{ muestraCreada()!.id }}</span>
+                — Fecha: {{ muestraCreada()!.fechaMuestra }}
               </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
+              @if (muestraCreada()!.evaluacion?.porParametro; as por) {
+                <div>
+                  <div class="font-medium mt-2">Evaluación</div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    @for (k of objectKeys(por); track k) {
+                      <div
+                        class="app-metric-card"
+                        >
+                        <div class="flex items-center justify-between gap-2">
+                          <div class="font-medium">{{ prettyKey(k) }}</div>
+                          <mat-chip-set>
+                            <mat-chip [ngClass]="chipClass(por[k].estado)">
+                              {{ por[k].estado }}
+                            </mat-chip>
+                          </mat-chip-set>
+                        </div>
+                        @if (por[k].mensajes.length) {
+                          <ul class="mt-2 list-disc pl-5 text-sm text-slate-700">
+                            @for (m of por[k].mensajes; track m) {
+                              <li>{{ m }}</li>
+                            }
+                          </ul>
+                        }
+                        @if (!por[k].mensajes.length) {
+                          <div class="mt-2 text-sm text-slate-500">
+                            Sin observaciones
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    `,
   styles: [
     `
       .chip-ok { border: 1px solid rgba(16,185,129,.35); background: rgba(16,185,129,.12); }

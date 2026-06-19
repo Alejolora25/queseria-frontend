@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -27,9 +27,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -39,8 +37,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
     MatProgressSpinnerModule,
     MatTableModule,
     MatPaginatorModule,
-    MatDialogModule,
-  ],
+    MatDialogModule
+],
   template: `
     <div class="space-y-4">
       <!-- Buscar proveedor -->
@@ -54,191 +52,190 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
                 <mat-option value="NIT">NIT</mat-option>
               </mat-select>
             </mat-form-field>
-
+    
             <mat-form-field class="flex-1 min-w-[240px]" appearance="outline">
               <mat-label>Identificación</mat-label>
               <input matInput [formControl]="buscarForm.controls.identificacion" placeholder="Ej: NIT-123" />
-              <mat-error *ngIf="buscarForm.controls.identificacion.invalid">Requerido</mat-error>
+              @if (buscarForm.controls.identificacion.invalid) {
+                <mat-error>Requerido</mat-error>
+              }
             </mat-form-field>
-
+    
             <button
               mat-raised-button
               color="primary"
               class="mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
-            >
+              >
               <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner
-                  *ngIf="state() === 'searchingProveedor'"
-                  diameter="18"
-                  mode="indeterminate"
-                />
+                @if (state() === 'searchingProveedor') {
+                  <mat-progress-spinner
+                    diameter="18"
+                    mode="indeterminate"
+                    />
+                }
                 Buscar
               </span>
             </button>
-
+    
             <button mat-stroked-button class="mt-1" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
-
-          <div *ngIf="bannerError()" class="app-alert app-alert-error">
-            <div class="font-medium">Error</div>
-            <div>{{ bannerError() }}</div>
-          </div>
-
-          <div *ngIf="proveedor()" class="pt-2">
-            <mat-divider />
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div class="text-sm text-slate-600">Proveedor</div>
-                <div class="font-semibold">
-                  {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
-                </div>
-              </div>
-              <span class="app-badge app-badge-neutral">
-                ID: {{ proveedor()!.id }}
-              </span>
+    
+          @if (bannerError()) {
+            <div class="app-alert app-alert-error">
+              <div class="font-medium">Error</div>
+              <div>{{ bannerError() }}</div>
             </div>
-          </div>
+          }
+    
+          @if (proveedor()) {
+            <div class="pt-2">
+              <mat-divider />
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div class="text-sm text-slate-600">Proveedor</div>
+                  <div class="font-semibold">
+                    {{ proveedor()!.nombre }} — {{ proveedor()!.tipoIdentificacion }} {{ proveedor()!.identificacion }}
+                  </div>
+                </div>
+                <span class="app-badge app-badge-neutral">
+                  ID: {{ proveedor()!.id }}
+                </span>
+              </div>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
-
+    
       <!-- Filtros histórico -->
-      <mat-card *ngIf="proveedor()" class="app-card">
-        <mat-card-content class="app-card-content space-y-4">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="font-semibold">Filtros</div>
-
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="cargarHistorico(0)"
-              [disabled]="busy() || filtrosForm.invalid"
-            >
-              <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner
-                  *ngIf="state() === 'loadingHistorico'"
-                  diameter="18"
-                  mode="indeterminate"
-                />
-                Consultar
-              </span>
-            </button>
-          </div>
-
-          <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="filtrosForm">
-            <mat-form-field appearance="outline">
-              <mat-label>Desde (ISO)</mat-label>
-              <input matInput [formControl]="filtrosForm.controls.desde" />
-              <mat-error *ngIf="filtrosForm.controls.desde.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Hasta (ISO)</mat-label>
-              <input matInput [formControl]="filtrosForm.controls.hasta" />
-              <mat-error *ngIf="filtrosForm.controls.hasta.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Tamaño de página</mat-label>
-              <mat-select [formControl]="filtrosForm.controls.limit">
-                <mat-option [value]="10">10</mat-option>
-                <mat-option [value]="20">20</mat-option>
-                <mat-option [value]="50">50</mat-option>
-                <mat-option [value]="100">100</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </form>
-
-          <!-- Error histórico -->
-          <div *ngIf="histError()" class="app-alert app-alert-error">
-            <div class="font-medium">No se pudo cargar</div>
-            <div>{{ histError() }}</div>
-          </div>
-          <!-- Error analítica (arriba de la tabla) -->
-          <div *ngIf="analiticaError()" class="app-alert app-alert-error">
-              <div class="font-medium">Analítica</div>
-              <div>{{ analiticaError() }}</div>
-          </div>
-
-          <!-- Tabla -->
-          <div class="app-table-frame overflow-auto">
-            <table mat-table [dataSource]="items()" class="min-w-[900px]">
-
-              <ng-container matColumnDef="fecha">
-                <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                <td mat-cell *matCellDef="let r">{{ r.fechaMuestra }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="volumen">
-                <th mat-header-cell *matHeaderCellDef>Vol (L)</th>
-                <td mat-cell *matCellDef="let r">{{ r.volumenLitros ?? '' }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="precio">
-                <th mat-header-cell *matHeaderCellDef>Precio/L</th>
-                <td mat-cell *matCellDef="let r">{{ r.precioLitro ?? '' }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="grasa">
-                <th mat-header-cell *matHeaderCellDef>Grasa</th>
-                <td mat-cell *matCellDef="let r">{{ r.grasa }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="proteina">
-                <th mat-header-cell *matHeaderCellDef>Prot</th>
-                <td mat-cell *matCellDef="let r">{{ r.proteina }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="st">
-                <th mat-header-cell *matHeaderCellDef>ST</th>
-                <td mat-cell *matCellDef="let r">{{ r.solidosTotales }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="densidad">
-                <th mat-header-cell *matHeaderCellDef>Dens</th>
-                <td mat-cell *matCellDef="let r">{{ r.densidad }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="dornic">
-                <th mat-header-cell *matHeaderCellDef>°D</th>
-                <td mat-cell *matCellDef="let r">{{ r.acidezDornic }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="temp">
-                <th mat-header-cell *matHeaderCellDef>°C</th>
-                <td mat-cell *matCellDef="let r">{{ r.temperaturaC }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="obs">
-                <th mat-header-cell *matHeaderCellDef>Obs</th>
-                <td mat-cell *matCellDef="let r">{{ r.observaciones ?? '' }}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                <td mat-cell *matCellDef="let r">
-                  <button mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-          </div>
-
-          <mat-paginator
-            [length]="total()"
-            [pageSize]="limit()"
-            [pageSizeOptions]="[10,20,50,100]"
-            (page)="onPage($event)"
-          ></mat-paginator>
-        </mat-card-content>
-      </mat-card>
+      @if (proveedor()) {
+        <mat-card class="app-card">
+          <mat-card-content class="app-card-content space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="font-semibold">Filtros</div>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="cargarHistorico(0)"
+                [disabled]="busy() || filtrosForm.invalid"
+                >
+                <span class="inline-flex items-center gap-2">
+                  @if (state() === 'loadingHistorico') {
+                    <mat-progress-spinner
+                      diameter="18"
+                      mode="indeterminate"
+                      />
+                  }
+                  Consultar
+                </span>
+              </button>
+            </div>
+            <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="filtrosForm">
+              <mat-form-field appearance="outline">
+                <mat-label>Desde (ISO)</mat-label>
+                <input matInput [formControl]="filtrosForm.controls.desde" />
+                @if (filtrosForm.controls.desde.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Hasta (ISO)</mat-label>
+                <input matInput [formControl]="filtrosForm.controls.hasta" />
+                @if (filtrosForm.controls.hasta.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tamaño de página</mat-label>
+                <mat-select [formControl]="filtrosForm.controls.limit">
+                  <mat-option [value]="10">10</mat-option>
+                  <mat-option [value]="20">20</mat-option>
+                  <mat-option [value]="50">50</mat-option>
+                  <mat-option [value]="100">100</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </form>
+            <!-- Error histórico -->
+            @if (histError()) {
+              <div class="app-alert app-alert-error">
+                <div class="font-medium">No se pudo cargar</div>
+                <div>{{ histError() }}</div>
+              </div>
+            }
+            <!-- Error analítica (arriba de la tabla) -->
+            @if (analiticaError()) {
+              <div class="app-alert app-alert-error">
+                <div class="font-medium">Analítica</div>
+                <div>{{ analiticaError() }}</div>
+              </div>
+            }
+            <!-- Tabla -->
+            <div class="app-table-frame overflow-auto">
+              <table mat-table [dataSource]="items()" class="min-w-[900px]">
+                <ng-container matColumnDef="fecha">
+                  <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                  <td mat-cell *matCellDef="let r">{{ r.fechaMuestra }}</td>
+                </ng-container>
+                <ng-container matColumnDef="volumen">
+                  <th mat-header-cell *matHeaderCellDef>Vol (L)</th>
+                  <td mat-cell *matCellDef="let r">{{ r.volumenLitros ?? '' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="precio">
+                  <th mat-header-cell *matHeaderCellDef>Precio/L</th>
+                  <td mat-cell *matCellDef="let r">{{ r.precioLitro ?? '' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="grasa">
+                  <th mat-header-cell *matHeaderCellDef>Grasa</th>
+                  <td mat-cell *matCellDef="let r">{{ r.grasa }}</td>
+                </ng-container>
+                <ng-container matColumnDef="proteina">
+                  <th mat-header-cell *matHeaderCellDef>Prot</th>
+                  <td mat-cell *matCellDef="let r">{{ r.proteina }}</td>
+                </ng-container>
+                <ng-container matColumnDef="st">
+                  <th mat-header-cell *matHeaderCellDef>ST</th>
+                  <td mat-cell *matCellDef="let r">{{ r.solidosTotales }}</td>
+                </ng-container>
+                <ng-container matColumnDef="densidad">
+                  <th mat-header-cell *matHeaderCellDef>Dens</th>
+                  <td mat-cell *matCellDef="let r">{{ r.densidad }}</td>
+                </ng-container>
+                <ng-container matColumnDef="dornic">
+                  <th mat-header-cell *matHeaderCellDef>°D</th>
+                  <td mat-cell *matCellDef="let r">{{ r.acidezDornic }}</td>
+                </ng-container>
+                <ng-container matColumnDef="temp">
+                  <th mat-header-cell *matHeaderCellDef>°C</th>
+                  <td mat-cell *matCellDef="let r">{{ r.temperaturaC }}</td>
+                </ng-container>
+                <ng-container matColumnDef="obs">
+                  <th mat-header-cell *matHeaderCellDef>Obs</th>
+                  <td mat-cell *matCellDef="let r">{{ r.observaciones ?? '' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                  <td mat-cell *matCellDef="let r">
+                    <button mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button>
+                  </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            </div>
+            <mat-paginator
+              [length]="total()"
+              [pageSize]="limit()"
+              [pageSizeOptions]="[10,20,50,100]"
+              (page)="onPage($event)"
+            ></mat-paginator>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
-  `,
+    `,
 })
 export class HistoricoPageComponent {
   private fb = inject(FormBuilder);

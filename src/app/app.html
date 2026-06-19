@@ -16,21 +16,22 @@
       </div>
 
       <nav class="space-y-2" aria-label="Navegación principal">
-        <a
-          *ngFor="let item of navItems"
-          [routerLink]="item.route"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
-        >
-          <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
-            <mat-icon>{{ item.icon }}</mat-icon>
-          </span>
-          <span class="min-w-0">
-            <span class="block truncate">{{ item.label }}</span>
-            <span class="block truncate text-xs font-normal text-slate-400">{{ item.description }}</span>
-          </span>
-        </a>
+        @for (item of navItems; track item) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
+            >
+            <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
+              <mat-icon>{{ item.icon }}</mat-icon>
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate">{{ item.label }}</span>
+              <span class="block truncate text-xs font-normal text-slate-400">{{ item.description }}</span>
+            </span>
+          </a>
+        }
       </nav>
 
       <div class="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -47,7 +48,7 @@
         type="button"
         aria-label="Abrir menú"
         (click)="toggleMobileMenu()"
-      >
+        >
         <mat-icon>menu</mat-icon>
       </button>
 
@@ -60,52 +61,53 @@
     </div>
   </header>
 
-  <div
-    *ngIf="mobileMenuOpen()"
-    class="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm lg:hidden"
-    (click)="closeMobileMenu()"
-  ></div>
+  @if (mobileMenuOpen()) {
+    <div
+      class="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm lg:hidden"
+      (click)="closeMobileMenu()"
+    ></div>
+  }
 
-  <aside
-    *ngIf="mobileMenuOpen()"
-    class="fixed inset-y-0 left-0 z-50 w-[min(320px,86vw)] border-r border-slate-200 bg-white shadow-2xl lg:hidden"
-  >
-    <div class="flex h-full flex-col px-5 py-5">
-      <div class="mb-7 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-700 text-sm font-bold text-white">
-            Q
+  @if (mobileMenuOpen()) {
+    <aside
+      class="fixed inset-y-0 left-0 z-50 w-[min(320px,86vw)] border-r border-slate-200 bg-white shadow-2xl lg:hidden"
+      >
+      <div class="flex h-full flex-col px-5 py-5">
+        <div class="mb-7 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-700 text-sm font-bold text-white">
+              Q
+            </div>
+            <div>
+              <div class="font-semibold">Quesería</div>
+              <div class="text-xs text-slate-500">Calidad de leche</div>
+            </div>
           </div>
-          <div>
-            <div class="font-semibold">Quesería</div>
-            <div class="text-xs text-slate-500">Calidad de leche</div>
-          </div>
+          <button mat-icon-button type="button" aria-label="Cerrar menú" (click)="closeMobileMenu()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-
-        <button mat-icon-button type="button" aria-label="Cerrar menú" (click)="closeMobileMenu()">
-          <mat-icon>close</mat-icon>
-        </button>
+        <nav class="space-y-2" aria-label="Navegación móvil">
+          @for (item of navItems; track item) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
+              >
+              <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
+                <mat-icon>{{ item.icon }}</mat-icon>
+              </span>
+              <span>
+                <span class="block">{{ item.label }}</span>
+                <span class="block text-xs font-normal text-slate-400">{{ item.description }}</span>
+              </span>
+            </a>
+          }
+        </nav>
       </div>
-
-      <nav class="space-y-2" aria-label="Navegación móvil">
-        <a
-          *ngFor="let item of navItems"
-          [routerLink]="item.route"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
-        >
-          <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
-            <mat-icon>{{ item.icon }}</mat-icon>
-          </span>
-          <span>
-            <span class="block">{{ item.label }}</span>
-            <span class="block text-xs font-normal text-slate-400">{{ item.description }}</span>
-          </span>
-        </a>
-      </nav>
-    </div>
-  </aside>
+    </aside>
+  }
 
   <main class="min-h-dvh lg:pl-[280px]">
     <div class="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-8">

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +8,7 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatDividerModule],
+  imports: [MatDialogModule, MatButtonModule, MatDividerModule],
   template: `
     <div class="p-4 w-[92vw] max-w-3xl">
       <div class="flex items-start justify-between gap-4">
@@ -21,12 +21,12 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
             {{ data.timestamp }}
           </div>
         </div>
-
+    
         <button mat-stroked-button mat-dialog-close>Cerrar</button>
       </div>
-
+    
       <mat-divider class="my-4"></mat-divider>
-
+    
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="app-metric-card">
           <div class="text-xs text-slate-500">KPI calidad</div>
@@ -35,21 +35,24 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
           </div>
           <div class="text-xs text-slate-500">({{ n(data.kpiCalidad) }})</div>
         </div>
-
+    
         <div class="app-metric-card md:col-span-2">
           <div class="text-xs text-slate-500">Flags</div>
           <div class="mt-2 flex flex-wrap gap-2">
-            <span
-              *ngFor="let f of (data.flags ?? [])"
-              class="app-badge app-badge-neutral"
-            >
-              {{ f }}
-            </span>
-            <span *ngIf="!data.flags?.length" class="text-sm text-slate-600">—</span>
+            @for (f of (data.flags ?? []); track f) {
+              <span
+                class="app-badge app-badge-neutral"
+                >
+                {{ f }}
+              </span>
+            }
+            @if (!data.flags?.length) {
+              <span class="text-sm text-slate-600">—</span>
+            }
           </div>
         </div>
       </div>
-
+    
       <div class="app-panel mt-4 p-3">
         <div class="font-semibold mb-2">Base (valores)</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
@@ -64,33 +67,38 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
           <div><span class="text-slate-500">Agua%:</span> {{ n(data.base?.aguaPct) }}</div>
         </div>
       </div>
-
+    
       <div class="app-panel mt-4 p-3">
         <div class="font-semibold mb-2">Evaluación</div>
-
-        <ng-container *ngIf="entries().length; else noEval">
+    
+        @if (entries().length) {
           <div class="space-y-3">
-            <div *ngFor="let e of entries()" class="app-metric-card">
-              <div class="flex items-center justify-between gap-2">
-                <div class="font-semibold">{{ e.key }}</div>
-                <span class="app-badge app-badge-neutral">{{ e.estado }}</span>
+            @for (e of entries(); track e) {
+              <div class="app-metric-card">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="font-semibold">{{ e.key }}</div>
+                  <span class="app-badge app-badge-neutral">{{ e.estado }}</span>
+                </div>
+                @if (e.mensajes.length) {
+                  <ul class="mt-2 list-disc pl-5 text-sm text-slate-700">
+                    @for (m of e.mensajes; track m) {
+                      <li>{{ m }}</li>
+                    }
+                  </ul>
+                }
+                @if (!e.mensajes.length) {
+                  <div class="text-sm text-slate-500 mt-2">Sin mensajes</div>
+                }
               </div>
-
-              <ul class="mt-2 list-disc pl-5 text-sm text-slate-700" *ngIf="e.mensajes?.length">
-                <li *ngFor="let m of e.mensajes">{{ m }}</li>
-              </ul>
-
-              <div class="text-sm text-slate-500 mt-2" *ngIf="!e.mensajes?.length">Sin mensajes</div>
-            </div>
+            }
           </div>
-        </ng-container>
-
-        <ng-template #noEval>
+        } @else {
           <div class="text-sm text-slate-600">Sin evaluación disponible</div>
-        </ng-template>
+        }
+    
       </div>
     </div>
-  `,
+    `,
 })
 export class AnaliticaDialogComponent {
   data = inject<AnaliticaMuestraDocResp>(MAT_DIALOG_DATA);

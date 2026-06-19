@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -22,9 +22,7 @@ type UiState = 'idle' | 'loading' | 'saving';
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -32,10 +30,9 @@ type UiState = 'idle' | 'loading' | 'saving';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-
     MatTableModule,
-    MatPaginatorModule,
-  ],
+    MatPaginatorModule
+],
   template: `
     <div class="space-y-4">
       <div class="flex items-center justify-end gap-2 flex-wrap">
@@ -43,13 +40,15 @@ type UiState = 'idle' | 'loading' | 'saving';
           <button mat-stroked-button (click)="nuevo()" [disabled]="busy()">Nuevo proveedor</button>
           <button mat-raised-button color="primary" (click)="buscar(0)" [disabled]="busy()">
             <span class="inline-flex items-center gap-2">
-              <mat-progress-spinner *ngIf="state() === 'loading'" diameter="18" mode="indeterminate" />
+              @if (state() === 'loading') {
+                <mat-progress-spinner diameter="18" mode="indeterminate" />
+              }
               Consultar
             </span>
           </button>
         </div>
       </div>
-
+    
       <!-- Filtros -->
       <mat-card class="app-card">
         <mat-card-content class="app-card-content space-y-3">
@@ -58,7 +57,7 @@ type UiState = 'idle' | 'loading' | 'saving';
               <mat-label>Búsqueda</mat-label>
               <input matInput placeholder="Nombre / identificación..." [formControl]="form.controls.q" />
             </mat-form-field>
-
+    
             <mat-form-field appearance="outline">
               <mat-label>Activo</mat-label>
               <mat-select [formControl]="form.controls.activo">
@@ -67,7 +66,7 @@ type UiState = 'idle' | 'loading' | 'saving';
                 <mat-option [value]="false">Inactivos</mat-option>
               </mat-select>
             </mat-form-field>
-
+    
             <mat-form-field appearance="outline">
               <mat-label>Tamaño de página</mat-label>
               <mat-select [formControl]="form.controls.limit">
@@ -78,87 +77,101 @@ type UiState = 'idle' | 'loading' | 'saving';
               </mat-select>
             </mat-form-field>
           </form>
-
+    
           <div class="flex gap-2">
             <button mat-stroked-button (click)="limpiar()" [disabled]="busy()">Limpiar</button>
             <button mat-stroked-button (click)="buscar(0)" [disabled]="busy()">Aplicar</button>
           </div>
-
-          <div *ngIf="error()" class="app-alert app-alert-error">
-            <div class="font-medium">No se pudo cargar</div>
-            <div>{{ error() }}</div>
-          </div>
+    
+          @if (error()) {
+            <div class="app-alert app-alert-error">
+              <div class="font-medium">No se pudo cargar</div>
+              <div>{{ error() }}</div>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
-
+    
       <!-- Crear / editar -->
-      <mat-card *ngIf="formVisible()" class="app-card">
-        <mat-card-content class="app-card-content space-y-3">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="font-semibold">
-              {{ proveedorEditando() ? 'Editar proveedor' : 'Crear proveedor' }}
+      @if (formVisible()) {
+        <mat-card class="app-card">
+          <mat-card-content class="app-card-content space-y-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="font-semibold">
+                {{ proveedorEditando() ? 'Editar proveedor' : 'Crear proveedor' }}
+              </div>
+              <button mat-stroked-button (click)="cancelarFormulario()" [disabled]="busy()">Cancelar</button>
             </div>
-            <button mat-stroked-button (click)="cancelarFormulario()" [disabled]="busy()">Cancelar</button>
-          </div>
-
-          <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="proveedorForm">
-            <mat-form-field appearance="outline">
-              <mat-label>Nombre</mat-label>
-              <input matInput [formControl]="proveedorForm.controls.nombre" />
-              <mat-error *ngIf="proveedorForm.controls.nombre.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [formControl]="proveedorForm.controls.tipoIdentificacion">
-                <mat-option value="CC">CC</mat-option>
-                <mat-option value="NIT">NIT</mat-option>
-                <mat-option value="CE">CE</mat-option>
-              </mat-select>
-              <mat-error *ngIf="proveedorForm.controls.tipoIdentificacion.invalid">Requerido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Identificación</mat-label>
-              <input matInput [formControl]="proveedorForm.controls.identificacion" />
-              <mat-error *ngIf="proveedorForm.controls.identificacion.invalid">Requerido</mat-error>
-            </mat-form-field>
-          </form>
-
-          <div *ngIf="formError()" class="app-alert app-alert-error">
-            <div class="font-medium">No se pudo guardar</div>
-            <div>{{ formError() }}</div>
-
-            <div *ngIf="formFields()" class="mt-2 text-xs text-slate-700">
-              <div class="font-medium">Detalles:</div>
-              <ul class="list-disc pl-5">
-                <li *ngFor="let item of fieldErrorsList(formFields()!)">
-                  <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
-                </li>
-              </ul>
+            <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="proveedorForm">
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput [formControl]="proveedorForm.controls.nombre" />
+                @if (proveedorForm.controls.nombre.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+                <mat-select [formControl]="proveedorForm.controls.tipoIdentificacion">
+                  <mat-option value="CC">CC</mat-option>
+                  <mat-option value="NIT">NIT</mat-option>
+                  <mat-option value="CE">CE</mat-option>
+                </mat-select>
+                @if (proveedorForm.controls.tipoIdentificacion.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Identificación</mat-label>
+                <input matInput [formControl]="proveedorForm.controls.identificacion" />
+                @if (proveedorForm.controls.identificacion.invalid) {
+                  <mat-error>Requerido</mat-error>
+                }
+              </mat-form-field>
+            </form>
+            @if (formError()) {
+              <div class="app-alert app-alert-error">
+                <div class="font-medium">No se pudo guardar</div>
+                <div>{{ formError() }}</div>
+                @if (formFields()) {
+                  <div class="mt-2 text-xs text-slate-700">
+                    <div class="font-medium">Detalles:</div>
+                    <ul class="list-disc pl-5">
+                      @for (item of fieldErrorsList(formFields()!); track item) {
+                        <li>
+                          <span class="font-medium">{{ item.field }}:</span> {{ item.messages.join(', ') }}
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
+            <div class="flex justify-end">
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="guardarProveedor()"
+                [disabled]="proveedorForm.invalid || busy()"
+                >
+                <span class="inline-flex items-center gap-2">
+                  @if (state() === 'saving') {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                  }
+                  Guardar
+                </span>
+              </button>
             </div>
-          </div>
-
-          <div class="flex justify-end">
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="guardarProveedor()"
-              [disabled]="proveedorForm.invalid || busy()"
-            >
-              <span class="inline-flex items-center gap-2">
-                <mat-progress-spinner *ngIf="state() === 'saving'" diameter="18" mode="indeterminate" />
-                Guardar
-              </span>
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <div *ngIf="success()" class="app-alert app-alert-success">
-        {{ success() }}
-      </div>
-
+          </mat-card-content>
+        </mat-card>
+      }
+    
+      @if (success()) {
+        <div class="app-alert app-alert-success">
+          {{ success() }}
+        </div>
+      }
+    
       <!-- Tabla -->
       <mat-card class="app-card">
         <mat-card-content class="p-0">
@@ -168,17 +181,17 @@ type UiState = 'idle' | 'loading' | 'saving';
                 <th mat-header-cell *matHeaderCellDef>ID</th>
                 <td mat-cell *matCellDef="let r">{{ r.id }}</td>
               </ng-container>
-
+    
               <ng-container matColumnDef="nombre">
                 <th mat-header-cell *matHeaderCellDef>Nombre</th>
                 <td mat-cell *matCellDef="let r" class="font-medium">{{ r.nombre }}</td>
               </ng-container>
-
+    
               <ng-container matColumnDef="identificacion">
                 <th mat-header-cell *matHeaderCellDef>Identificación</th>
                 <td mat-cell *matCellDef="let r">{{ r.tipoIdentificacion }} {{ r.identificacion }}</td>
               </ng-container>
-
+    
               <ng-container matColumnDef="activo">
                 <th mat-header-cell *matHeaderCellDef>Estado</th>
                 <td mat-cell *matCellDef="let r">
@@ -186,44 +199,46 @@ type UiState = 'idle' | 'loading' | 'saving';
                     class="app-badge"
                     [class.app-badge-success]="r.activo"
                     [class.app-badge-neutral]="!r.activo"
-                  >
+                    >
                     {{ r.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
               </ng-container>
-
+    
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
                 <td mat-cell *matCellDef="let r">
                   <div class="flex flex-wrap gap-2">
                     <button mat-stroked-button (click)="editar(r)" [disabled]="busy()">Editar</button>
-                    <button
-                      mat-stroked-button
-                      color="primary"
-                      *ngIf="!r.activo"
-                      (click)="activar(r)"
-                      [disabled]="busy()"
-                    >
-                      Activar
-                    </button>
-                    <button
-                      mat-stroked-button
-                      color="warn"
-                      *ngIf="r.activo"
-                      (click)="desactivar(r)"
-                      [disabled]="busy()"
-                    >
-                      Desactivar
-                    </button>
+                    @if (!r.activo) {
+                      <button
+                        mat-stroked-button
+                        color="primary"
+                        (click)="activar(r)"
+                        [disabled]="busy()"
+                        >
+                        Activar
+                      </button>
+                    }
+                    @if (r.activo) {
+                      <button
+                        mat-stroked-button
+                        color="warn"
+                        (click)="desactivar(r)"
+                        [disabled]="busy()"
+                        >
+                        Desactivar
+                      </button>
+                    }
                   </div>
                 </td>
               </ng-container>
-
+    
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             </table>
           </div>
-
+    
           <div class="p-3 flex items-center justify-between text-sm text-slate-600">
             <div>Total: <span class="font-medium text-slate-900">{{ total() }}</span></div>
             <div>
@@ -233,7 +248,7 @@ type UiState = 'idle' | 'loading' | 'saving';
               <span class="font-medium text-slate-900">{{ total() }}</span>
             </div>
           </div>
-
+    
           <mat-paginator
             [length]="total()"
             [pageSize]="limit()"
@@ -243,7 +258,7 @@ type UiState = 'idle' | 'loading' | 'saving';
         </mat-card-content>
       </mat-card>
     </div>
-  `,
+    `,
 })
 export class ProveedoresPageComponent {
   private fb = inject(FormBuilder);
