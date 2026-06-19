@@ -166,3 +166,21 @@ body {
 .mat-mdc-form-field .mat-mdc-text-field-wrapper {
   background: rgba(255, 255, 255, 0.72);
 }
+
+.providers-desktop-table {
+  display: none !important;
+}
+
+.providers-mobile-list {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .providers-desktop-table {
+    display: block !important;
+  }
+
+  .providers-mobile-list {
+    display: none !important;
+  }
+}
