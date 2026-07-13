@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +12,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { merge } from 'rxjs';
 
 import { ProveedoresApi } from '../../../../core/api/proveedores.api';
 import { MuestrasApi } from '../../../../core/api/muestras.api';
@@ -172,10 +174,10 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
               <section class="app-panel p-4">
                 <div class="mb-3">
                   <div class="text-sm font-semibold text-slate-900">Composición</div>
-                  <div class="text-xs text-slate-500">Grasa, proteína, lactosa y sólidos totales.</div>
+                  <div class="text-xs text-slate-500">Grasa, proteína, lactosa, SNG y sólidos totales.</div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
                   <mat-form-field appearance="outline">
                     <mat-label>Grasa (%)</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.grasa" />
@@ -195,8 +197,16 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                     <input matInput type="number" [formControl]="muestraForm.controls.lactosa" />
                   </mat-form-field>
                   <mat-form-field appearance="outline">
+                    <mat-label>SNG (%)</mat-label>
+                    <input matInput type="number" [formControl]="muestraForm.controls.sng" />
+                    @if (muestraForm.controls.sng.invalid) {
+                      <mat-error>Requerido</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
                     <mat-label>Sólidos Totales (%)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.solidosTotales" />
+                    <input matInput type="number" readonly [formControl]="muestraForm.controls.solidosTotales" />
+                    <mat-hint>Grasa + SNG</mat-hint>
                     @if (muestraForm.controls.solidosTotales.invalid) {
                       <mat-error>Requerido</mat-error>
                     }
@@ -256,14 +266,10 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
               <section class="app-panel p-4">
                 <div class="mb-3">
                   <div class="text-sm font-semibold text-slate-900">Opcionales</div>
-                  <div class="text-xs text-slate-500">Valores calculados o complementarios si están disponibles.</div>
+                  <div class="text-xs text-slate-500">Valores complementarios si están disponibles.</div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <mat-form-field appearance="outline">
-                    <mat-label>SNG (opcional)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.sng" />
-                  </mat-form-field>
                   <mat-form-field appearance="outline">
                     <mat-label>Agua % (opcional)</mat-label>
                     <input matInput type="number" [formControl]="muestraForm.controls.aguaPct" />
@@ -385,6 +391,7 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
 })
 export class CargaMuestraPageComponent {
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
   private proveedoresApi = inject(ProveedoresApi);
   private muestrasApi = inject(MuestrasApi);
   private dialog = inject(MatDialog);
@@ -428,10 +435,21 @@ export class CargaMuestraPageComponent {
     ufcBacterias: [0],
     ccSomaticas: [0],
 
-    // opcionales
-    sng: [null as number | null],
+    // composicion complementaria
+    sng: [null as number | null, Validators.required],
     aguaPct: [null as number | null],
   });
+
+  constructor() {
+    this.actualizarSolidosTotales();
+
+    merge(
+      this.muestraForm.controls.grasa.valueChanges,
+      this.muestraForm.controls.sng.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.actualizarSolidosTotales());
+  }
 
   reset() {
     this.state.set('idle');
@@ -500,7 +518,7 @@ export class CargaMuestraPageComponent {
         grasa: Number(v.grasa),
         proteina: Number(v.proteina),
         lactosa: this.nullIfEmptyNumber(v.lactosa),
-        solidosTotales: Number(v.solidosTotales),
+        solidosTotales: this.calcularSolidosTotales(v.grasa, v.sng),
       },
       fisicoQuimico: {
         densidad: Number(v.densidad),
@@ -511,7 +529,7 @@ export class CargaMuestraPageComponent {
         ufcBacterias: this.nullIfEmptyNumber(v.ufcBacterias),
         ccSomaticas: this.nullIfEmptyNumber(v.ccSomaticas),
       },
-      sng: v.sng ?? null,
+      sng: Number(v.sng),
       aguaPct: v.aguaPct ?? null,
     };
 
@@ -603,6 +621,26 @@ export class CargaMuestraPageComponent {
     const n = Number(v);
     // si dejas 0 como válido, no lo convertimos a null
     return Number.isFinite(n) ? n : null;
+  }
+
+  private actualizarSolidosTotales() {
+    const total = this.calcularSolidosTotales(
+      this.muestraForm.controls.grasa.value,
+      this.muestraForm.controls.sng.value,
+    );
+
+    this.muestraForm.controls.solidosTotales.setValue(total, { emitEvent: false });
+  }
+
+  private calcularSolidosTotales(grasa: unknown, sng: unknown): number {
+    const grasaNum = Number(grasa);
+    const sngNum = Number(sng);
+
+    if (!Number.isFinite(grasaNum) || !Number.isFinite(sngNum)) {
+      return 0;
+    }
+
+    return Number((grasaNum + sngNum).toFixed(2));
   }
 
   private defaultNowOffsetIso(): string {

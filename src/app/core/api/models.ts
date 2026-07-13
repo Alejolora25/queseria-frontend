@@ -55,7 +55,7 @@ export interface CrearMuestraReq {
   composicion: ComposicionReq;
   fisicoQuimico: FisicoQuimicoReq;
   higiene?: HigieneReq | null;
-  sng?: number | null;
+  sng: number;
   aguaPct?: number | null;
 }
 
