@@ -1,14 +1,14 @@
 
 import { Component, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
+import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
 
 @Component({
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatDividerModule],
+  imports: [ButtonModule, DividerModule],
   template: `
     <div class="max-h-[88vh] w-[min(92vw,880px)] overflow-auto p-5 sm:p-6">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -23,10 +23,10 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
           </div>
         </div>
     
-        <button class="w-full sm:w-auto" mat-stroked-button mat-dialog-close>Cerrar</button>
+        <p-button styleClass="w-full sm:w-auto" label="Cerrar" icon="pi pi-times" [outlined]="true" (onClick)="close()" />
       </div>
     
-      <mat-divider class="my-4"></mat-divider>
+      <p-divider />
     
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="app-metric-card">
@@ -102,11 +102,16 @@ import { AnaliticaMuestraDocResp } from '../../../../core/api/models';
     `,
 })
 export class AnaliticaDialogComponent {
-  data = inject<AnaliticaMuestraDocResp>(MAT_DIALOG_DATA);
+  private readonly config = inject(DynamicDialogConfig<AnaliticaMuestraDocResp>);
+  private readonly ref = inject(DynamicDialogRef);
+  data = this.config.data!;
   readonly evaluacionEntries = this.buildEvaluacionEntries();
 
   private buildEvaluacionEntries() {
-    const map = this.data?.evaluacion?.porParametro ?? {};
+    const map = (this.data?.evaluacion?.porParametro ?? {}) as Record<
+      string,
+      { estado?: string | null; mensajes?: string[] | null }
+    >;
     return Object.entries(map).map(([key, v]) => ({
       key,
       estado: v?.estado ?? '—',
@@ -127,4 +132,6 @@ export class AnaliticaDialogComponent {
     if (Number.isNaN(num)) return '—';
     return `${Math.round(num * 100)}%`;
   }
+
+  close() { this.ref.close(); }
 }

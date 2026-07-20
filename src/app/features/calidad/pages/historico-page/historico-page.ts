@@ -1,16 +1,13 @@
 
 import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { ProveedoresApi } from '../../../../core/api/proveedores.api';
 import { MuestrasApi } from '../../../../core/api/muestras.api';
@@ -18,7 +15,6 @@ import { parseApiError } from '../../../../core/api/api-error';
 import { MuestraResp, ProveedorResp } from '../../../../core/api/models';
 import { environment } from '../../../../../environments/environment';
 
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AnaliticasApi } from '../../../../core/api/analiticas.api';
 import { AnaliticaDialogComponent } from '../../components/analitica-dialog/analitica-dialog';
 
@@ -26,74 +22,65 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
 
 @Component({
   standalone: true,
+  providers: [DialogService],
   imports: [
     ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatDialogModule
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    TableModule,
+    PaginatorModule,
+    DynamicDialogModule,
 ],
   template: `
     <div class="space-y-4">
       <!-- Buscar proveedor -->
-      <mat-card class="app-card">
-        <mat-card-content class="app-card-content space-y-3">
+      <div class="app-card">
+        <div class="app-card-content space-y-3">
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <mat-form-field class="w-full" appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [formControl]="buscarForm.controls.tipoIdentificacion">
-                <mat-option value="CC">CC</mat-option>
-                <mat-option value="NIT">NIT</mat-option>
-              </mat-select>
-            </mat-form-field>
-    
-            <mat-form-field class="flex-1 min-w-[240px]" appearance="outline">
-              <mat-label>Identificación</mat-label>
-              <input matInput [formControl]="buscarForm.controls.identificacion" placeholder="Ej: NIT-123" />
+            <div class="w-full" appearance="outline">
+              <label class="text-sm font-semibold">Tipo</label>
+              <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
+            </div>
+
+            <div class="flex-1 min-w-[240px]" appearance="outline">
+              <label class="text-sm font-semibold">Identificación</label>
+              <input pInputText [formControl]="buscarForm.controls.identificacion" placeholder="Ej: NIT-123" />
               @if (buscarForm.controls.identificacion.invalid) {
-                <mat-error>Requerido</mat-error>
+                <small class="text-red-600">Requerido</small>
               }
-            </mat-form-field>
-    
+            </div>
+
             <button
-              mat-raised-button
-              color="primary"
+              pButton
+
               class="w-full lg:w-auto lg:mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
               <span class="inline-flex items-center gap-2">
                 @if (state() === 'searchingProveedor') {
-                  <mat-progress-spinner
-                    diameter="18"
-                    mode="indeterminate"
-                    />
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                 }
                 Buscar
               </span>
             </button>
-    
-            <button mat-stroked-button class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
+
+            <button pButton class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
-    
+
           @if (bannerError()) {
             <div class="app-alert app-alert-error">
               <div class="font-medium">Error</div>
               <div>{{ bannerError() }}</div>
             </div>
           }
-    
+
           @if (proveedor()) {
             <div class="pt-2">
-              <mat-divider />
+              <hr class="my-4 border-surface" />
               <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div class="text-sm text-slate-600">Proveedor</div>
@@ -107,57 +94,49 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               </div>
             </div>
           }
-        </mat-card-content>
-      </mat-card>
-    
+        </div>
+      </div>
+
       <!-- Filtros histórico -->
       @if (proveedor()) {
-        <mat-card class="app-card">
-          <mat-card-content class="app-card-content space-y-4">
+        <div class="app-card">
+          <div class="app-card-content space-y-4">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <div class="font-semibold">Filtros</div>
               <button
-                mat-raised-button
-                color="primary"
+                pButton
+
                 class="w-full sm:w-auto"
                 (click)="cargarHistorico(0)"
                 [disabled]="busy() || filtrosForm.invalid"
                 >
                 <span class="inline-flex items-center gap-2">
                   @if (state() === 'loadingHistorico') {
-                    <mat-progress-spinner
-                      diameter="18"
-                      mode="indeterminate"
-                      />
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                   }
                   Consultar
                 </span>
               </button>
             </div>
             <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="filtrosForm">
-              <mat-form-field appearance="outline">
-                <mat-label>Desde (ISO)</mat-label>
-                <input matInput [formControl]="filtrosForm.controls.desde" />
+              <div appearance="outline">
+                <label class="text-sm font-semibold">Desde (ISO)</label>
+                <input pInputText [formControl]="filtrosForm.controls.desde" />
                 @if (filtrosForm.controls.desde.invalid) {
-                  <mat-error>Requerido</mat-error>
+                  <small class="text-red-600">Requerido</small>
                 }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Hasta (ISO)</mat-label>
-                <input matInput [formControl]="filtrosForm.controls.hasta" />
+              </div>
+              <div appearance="outline">
+                <label class="text-sm font-semibold">Hasta (ISO)</label>
+                <input pInputText [formControl]="filtrosForm.controls.hasta" />
                 @if (filtrosForm.controls.hasta.invalid) {
-                  <mat-error>Requerido</mat-error>
+                  <small class="text-red-600">Requerido</small>
                 }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Tamaño de página</mat-label>
-                <mat-select [formControl]="filtrosForm.controls.limit">
-                  <mat-option [value]="10">10</mat-option>
-                  <mat-option [value]="20">20</mat-option>
-                  <mat-option [value]="50">50</mat-option>
-                  <mat-option [value]="100">100</mat-option>
-                </mat-select>
-              </mat-form-field>
+              </div>
+              <div appearance="outline">
+                <label class="text-sm font-semibold">Tamaño de página</label>
+                <p-select [options]="[10, 20, 50, 100]" [formControl]="filtrosForm.controls.limit" />
+              </div>
             </form>
             <!-- Error histórico -->
             @if (histError()) {
@@ -176,8 +155,8 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
             <!-- Lista móvil -->
             <div class="historico-mobile-list space-y-3">
               @for (r of items(); track r.id) {
-                <mat-card class="app-card">
-                  <mat-card-content class="app-card-content space-y-3">
+                <div class="app-card">
+                  <div class="app-card-content space-y-3">
                     <div>
                       <div class="text-xs font-semibold uppercase text-slate-500">Fecha</div>
                       <div class="mt-1 break-words font-semibold text-slate-950">{{ r.fechaMuestra }}</div>
@@ -224,78 +203,27 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
                       </div>
                     }
 
-                    <button class="w-full" mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">
+                    <button class="w-full" pButton (click)="verAnalitica(r.id)" [disabled]="busy()">
                       Ver analítica
                     </button>
-                  </mat-card-content>
-                </mat-card>
+                  </div>
+                </div>
               }
             </div>
 
             <!-- Tabla desktop -->
             <div class="historico-desktop-table">
               <div class="app-table-frame overflow-auto">
-                <table mat-table [dataSource]="items()" class="min-w-[900px]">
-                  <ng-container matColumnDef="fecha">
-                    <th mat-header-cell *matHeaderCellDef>Fecha</th>
-                    <td mat-cell *matCellDef="let r">{{ r.fechaMuestra }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="volumen">
-                    <th mat-header-cell *matHeaderCellDef>Vol (L)</th>
-                    <td mat-cell *matCellDef="let r">{{ r.volumenLitros ?? '' }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="precio">
-                    <th mat-header-cell *matHeaderCellDef>Precio/L</th>
-                    <td mat-cell *matCellDef="let r">{{ r.precioLitro ?? '' }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="grasa">
-                    <th mat-header-cell *matHeaderCellDef>Grasa</th>
-                    <td mat-cell *matCellDef="let r">{{ r.grasa }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="proteina">
-                    <th mat-header-cell *matHeaderCellDef>Prot</th>
-                    <td mat-cell *matCellDef="let r">{{ r.proteina }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="st">
-                    <th mat-header-cell *matHeaderCellDef>ST</th>
-                    <td mat-cell *matCellDef="let r">{{ r.solidosTotales }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="densidad">
-                    <th mat-header-cell *matHeaderCellDef>Dens</th>
-                    <td mat-cell *matCellDef="let r">{{ r.densidad }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="dornic">
-                    <th mat-header-cell *matHeaderCellDef>°D</th>
-                    <td mat-cell *matCellDef="let r">{{ r.acidezDornic }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="temp">
-                    <th mat-header-cell *matHeaderCellDef>°C</th>
-                    <td mat-cell *matCellDef="let r">{{ r.temperaturaC }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="obs">
-                    <th mat-header-cell *matHeaderCellDef>Obs</th>
-                    <td mat-cell *matCellDef="let r">{{ r.observaciones ?? '' }}</td>
-                  </ng-container>
-                  <ng-container matColumnDef="acciones">
-                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                    <td mat-cell *matCellDef="let r">
-                      <button mat-stroked-button (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button>
-                    </td>
-                  </ng-container>
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                </table>
+                <p-table [value]="items()" [loading]="state() === 'loadingHistorico'" [tableStyle]="{ 'min-width': '900px' }">
+  <ng-template #header><tr><th>Fecha</th><th>Vol (L)</th><th>Precio/L</th><th>Grasa</th><th>Prot</th><th>ST</th><th>Dens</th><th>°D</th><th>°C</th><th>Obs</th><th>Acciones</th></tr></ng-template>
+  <ng-template #body let-r><tr><td>{{ r.fechaMuestra }}</td><td>{{ r.volumenLitros ?? '' }}</td><td>{{ r.precioLitro ?? '' }}</td><td>{{ r.grasa }}</td><td>{{ r.proteina }}</td><td>{{ r.solidosTotales }}</td><td>{{ r.densidad }}</td><td>{{ r.acidezDornic }}</td><td>{{ r.temperaturaC }}</td><td>{{ r.observaciones ?? '' }}</td><td><button pButton (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button></td></tr></ng-template>
+</p-table>
               </div>
             </div>
 
-            <mat-paginator
-              [length]="total()"
-              [pageSize]="limit()"
-              [pageSizeOptions]="[10,20,50,100]"
-              (page)="onPage($event)"
-            ></mat-paginator>
-          </mat-card-content>
-        </mat-card>
+            <p-paginator [first]="offset()" [rows]="limit()" [totalRecords]="total()" [rowsPerPageOptions]="[10,20,50,100]" (onPageChange)="onPage($event)" />
+          </div>
+        </div>
       }
     </div>
     `,
@@ -306,7 +234,7 @@ export class HistoricoPageComponent {
   private muestrasApi = inject(MuestrasApi);
 
   private analiticasApi = inject(AnaliticasApi);
-  private dialog = inject(MatDialog);
+  private dialog = inject(DialogService);
 
   readonly analiticaError = signal<string | null>(null);
 
@@ -430,12 +358,13 @@ export class HistoricoPageComponent {
       });
   }
 
-  onPage(ev: PageEvent) {
-    const newOffset = ev.pageIndex * ev.pageSize;
+  onPage(ev: PaginatorState) {
+    const pageSize = ev.rows ?? this.limit();
+    const newOffset = ev.first ?? 0;
 
     // si cambió el pageSize, volvemos a 0
-    if (ev.pageSize !== this.limit()) {
-      this.filtrosForm.controls.limit.setValue(ev.pageSize);
+    if (pageSize !== this.limit()) {
+      this.filtrosForm.controls.limit.setValue(pageSize);
       this.cargarHistorico(0);
       return;
     }
@@ -456,7 +385,9 @@ export class HistoricoPageComponent {
 
         this.dialog.open(AnaliticaDialogComponent, {
           data: doc,
-          maxWidth: '92vw',
+          modal: true,
+          closable: false,
+          showHeader: false,
           width: 'min(92vw, 880px)',
         });
       },

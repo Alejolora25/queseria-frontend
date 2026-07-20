@@ -1,13 +1,9 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { ProveedoresApi } from '../../../../core/api/proveedores.api';
 import { AnaliticasApi } from '../../../../core/api/analiticas.api';
@@ -40,18 +36,14 @@ interface PromedioResumenView {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
   ],
   template: `
     <div class="space-y-5">
-      <mat-card class="app-card">
-        <mat-card-content class="app-card-content-lg space-y-4">
+      <div class="app-card">
+        <div class="app-card-content-lg space-y-4">
           <div>
             <h2 class="text-lg font-bold">Proveedor</h2>
             <p class="mt-1 text-sm text-slate-600">
@@ -60,39 +52,36 @@ interface PromedioResumenView {
           </div>
 
           <div class="grid grid-cols-1 gap-3 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <mat-form-field appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [formControl]="buscarForm.controls.tipoIdentificacion">
-                <mat-option value="CC">CC</mat-option>
-                <mat-option value="NIT">NIT</mat-option>
-              </mat-select>
-            </mat-form-field>
+            <div appearance="outline">
+              <label class="text-sm font-semibold">Tipo</label>
+              <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
+            </div>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Identificación</mat-label>
+            <div appearance="outline">
+              <label class="text-sm font-semibold">Identificación</label>
               <input
-                matInput
+                pInputText
                 [formControl]="buscarForm.controls.identificacion"
                 placeholder="Ej: 900123456"
               />
-            </mat-form-field>
+            </div>
 
             <button
-              mat-raised-button
-              color="primary"
+              pButton
+
               class="w-full lg:w-auto lg:mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
             >
               <span class="inline-flex items-center gap-2">
                 @if (state() === 'searchingProveedor') {
-                  <mat-progress-spinner diameter="18" mode="indeterminate" />
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                 }
                 Buscar
               </span>
             </button>
 
-            <button mat-stroked-button class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
+            <button pButton class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
@@ -118,12 +107,12 @@ interface PromedioResumenView {
               </div>
             </div>
           }
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
 
       @if (proveedor()) {
-        <mat-card class="app-card">
-          <mat-card-content class="app-card-content-lg space-y-4">
+        <div class="app-card">
+          <div class="app-card-content-lg space-y-4">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <h2 class="text-lg font-bold">Rango de análisis</h2>
@@ -133,15 +122,15 @@ interface PromedioResumenView {
               </div>
 
               <button
-                mat-raised-button
-                color="primary"
+                pButton
+
                 class="w-full lg:w-auto"
                 (click)="cargarResumen()"
                 [disabled]="busy() || filtrosForm.invalid"
               >
                 <span class="inline-flex items-center gap-2">
                   @if (state() === 'loadingResumen') {
-                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                   }
                   Consultar resumen
                 </span>
@@ -149,14 +138,14 @@ interface PromedioResumenView {
             </div>
 
             <form class="grid grid-cols-1 gap-3 md:grid-cols-2" [formGroup]="filtrosForm">
-              <mat-form-field appearance="outline">
-                <mat-label>Desde (Instant ISO - Z)</mat-label>
-                <input matInput [formControl]="filtrosForm.controls.desde" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Hasta (Instant ISO - Z)</mat-label>
-                <input matInput [formControl]="filtrosForm.controls.hasta" />
-              </mat-form-field>
+              <div appearance="outline">
+                <label class="text-sm font-semibold">Desde (Instant ISO - Z)</label>
+                <input pInputText [formControl]="filtrosForm.controls.desde" />
+              </div>
+              <div appearance="outline">
+                <label class="text-sm font-semibold">Hasta (Instant ISO - Z)</label>
+                <input pInputText [formControl]="filtrosForm.controls.hasta" />
+              </div>
             </form>
 
             @if (resumenError()) {
@@ -165,8 +154,8 @@ interface PromedioResumenView {
                 <div>{{ resumenError() }}</div>
               </div>
             }
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
       }
 
       @if (resumen()) {

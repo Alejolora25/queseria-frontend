@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 export type ProveedorNoEncontradoAction = 'crear' | 'revisar';
 
@@ -11,7 +11,7 @@ export interface ProveedorNoEncontradoDialogData {
 
 @Component({
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [ButtonModule],
   template: `
     <div class="w-[min(92vw,520px)] p-5 sm:p-6">
       <div class="app-badge app-badge-warning mb-4">Proveedor no encontrado</div>
@@ -24,21 +24,16 @@ export interface ProveedorNoEncontradoDialogData {
       </p>
 
       <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button mat-stroked-button type="button" (click)="close('revisar')">
-          Revisar número
-        </button>
-        <button mat-raised-button color="primary" type="button" (click)="close('crear')">
-          Crear proveedor
-        </button>
+        <p-button label="Revisar número" severity="secondary" [outlined]="true" (onClick)="close('revisar')" />
+        <p-button label="Crear proveedor" icon="pi pi-plus" (onClick)="close('crear')" />
       </div>
     </div>
   `,
 })
 export class ProveedorNoEncontradoDialogComponent {
-  protected readonly data = inject<ProveedorNoEncontradoDialogData>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(
-    MatDialogRef<ProveedorNoEncontradoDialogComponent, ProveedorNoEncontradoAction>
-  );
+  private readonly config = inject(DynamicDialogConfig<ProveedorNoEncontradoDialogData>);
+  protected readonly data = this.config.data!;
+  private readonly dialogRef = inject(DynamicDialogRef);
 
   protected close(action: ProveedorNoEncontradoAction) {
     this.dialogRef.close(action);

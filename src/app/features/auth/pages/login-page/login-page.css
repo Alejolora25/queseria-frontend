@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(14, 165, 233, 0.13), transparent 30%),
+    radial-gradient(circle at 92% 88%, rgba(16, 185, 129, 0.09), transparent 26%),
+    var(--app-bg);
+}
+
+.login-panel {
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.16);
+}
+
+.login-brand-panel {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.38), transparent 26%),
+    radial-gradient(circle at 15% 85%, rgba(16, 185, 129, 0.25), transparent 30%),
+    linear-gradient(145deg, #075985 0%, #0369a1 52%, #0c4a6e 100%);
+}
+
+.login-brand-panel::after {
+  position: absolute;
+  right: -6rem;
+  bottom: -7rem;
+  width: 22rem;
+  height: 22rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 3rem rgba(255, 255, 255, 0.035),
+    0 0 0 7rem rgba(255, 255, 255, 0.025);
+  content: '';
+}
+
+.login-input-wrap {
+  display: block;
+}
+
+.login-input-wrap > i {
+  color: var(--app-muted);
+}
+
+.login-input-wrap > input {
+  padding-left: 2.7rem;
+}

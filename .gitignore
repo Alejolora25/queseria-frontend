@@ -42,5 +42,6 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# docs
-docs/
+# Documentos auxiliares locales, excepto decisiones técnicas versionadas
+docs/*
+!docs/seguridad-flujo-frontend.md

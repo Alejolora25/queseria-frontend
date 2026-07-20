@@ -2,16 +2,11 @@ import { NgClass } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { merge } from 'rxjs';
 
 import { ProveedoresApi } from '../../../../core/api/proveedores.api';
@@ -25,25 +20,20 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
 
 @Component({
   standalone: true,
+  providers: [DialogService],
   imports: [
     NgClass,
     ReactiveFormsModule,
-
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatDividerModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    DynamicDialogModule,
   ],
   template: `
     <div class="space-y-4">
       <!-- Buscar proveedor -->
-      <mat-card class="app-card">
-        <mat-card-content class="app-card-content space-y-4">
+      <div class="app-card">
+        <div class="app-card-content space-y-4">
           <div>
             <div class="text-sm font-semibold text-slate-900">Proveedor</div>
             <p class="mt-1 text-sm text-slate-500">
@@ -52,44 +42,38 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
           </div>
 
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <mat-form-field class="w-full" appearance="outline">
-              <mat-label>Tipo</mat-label>
-              <mat-select [formControl]="buscarForm.controls.tipoIdentificacion">
-                <mat-option value="CC">CC</mat-option>
-                <mat-option value="NIT">NIT</mat-option>
-              </mat-select>
-            </mat-form-field>
-    
-            <mat-form-field class="flex-1 min-w-[240px]" appearance="outline">
-              <mat-label>Identificación</mat-label>
-              <input matInput [formControl]="buscarForm.controls.identificacion" placeholder="Ej: 123456789" />
+            <div class="w-full" appearance="outline">
+              <label class="text-sm font-semibold">Tipo</label>
+              <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
+            </div>
+
+            <div class="flex-1 min-w-[240px]" appearance="outline">
+              <label class="text-sm font-semibold">Identificación</label>
+              <input pInputText [formControl]="buscarForm.controls.identificacion" placeholder="Ej: 123456789" />
               @if (buscarForm.controls.identificacion.invalid) {
-                <mat-error>
+                <small class="text-red-600">
                   La identificación es requerida
-                </mat-error>
+                </small>
               }
-            </mat-form-field>
-    
+            </div>
+
             <button
-              mat-raised-button
-              color="primary"
+              pButton
+
               class="w-full md:w-auto md:mt-1"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
               <span class="inline-flex items-center gap-2">
                 @if (state() === 'searching') {
-                  <mat-progress-spinner
-                    diameter="18"
-                    mode="indeterminate"
-                    />
+                  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                 }
                 Buscar
               </span>
             </button>
-    
+
             <button
-              mat-stroked-button
+              pButton
               class="w-full md:w-auto md:mt-1"
               (click)="reset()"
               [disabled]="busy()"
@@ -97,17 +81,17 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
               Limpiar
             </button>
           </div>
-    
+
           @if (bannerError()) {
             <div class="app-alert app-alert-error mt-3">
               <div class="font-medium">Error</div>
               <div>{{ bannerError() }}</div>
             </div>
           }
-    
+
           @if (proveedor()) {
             <div class="mt-4">
-              <mat-divider />
+              <hr class="my-4 border-surface" />
               <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div class="text-sm text-slate-600">Proveedor seleccionado</div>
@@ -122,13 +106,13 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
               </div>
             </div>
           }
-        </mat-card-content>
-      </mat-card>
-    
+        </div>
+      </div>
+
       <!-- Form muestra -->
       @if (proveedor()) {
-        <mat-card class="app-card">
-          <mat-card-content class="app-card-content space-y-4">
+        <div class="app-card">
+          <div class="app-card-content space-y-4">
             <div>
               <div class="text-sm font-semibold text-slate-900">Datos de la muestra</div>
               <p class="mt-1 text-sm text-slate-500">
@@ -143,32 +127,32 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Fecha de muestra (ISO)</mat-label>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Fecha de muestra (ISO)</label>
                     <input
-                      matInput
+                      pInputText
                       [formControl]="muestraForm.controls.fechaMuestra"
                       placeholder="2026-01-12T08:00:00-05:00"
                       />
-                      <mat-hint>OffsetDateTime. Ej: -05:00</mat-hint>
+                      <small class="text-muted-color">OffsetDateTime. Ej: -05:00</small>
                       @if (muestraForm.controls.fechaMuestra.invalid) {
-                        <mat-error>Requerido</mat-error>
+                        <small class="text-red-600">Requerido</small>
                       }
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Volumen (L)</mat-label>
-                      <input matInput type="number" [formControl]="muestraForm.controls.volumenLitros" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Precio/Litro</mat-label>
-                      <input matInput type="number" [formControl]="muestraForm.controls.precioLitro" />
-                    </mat-form-field>
+                    </div>
+                    <div appearance="outline">
+                      <label class="text-sm font-semibold">Volumen (L)</label>
+                      <input pInputText type="number" [formControl]="muestraForm.controls.volumenLitros" />
+                    </div>
+                    <div appearance="outline">
+                      <label class="text-sm font-semibold">Precio/Litro</label>
+                      <input pInputText type="number" [formControl]="muestraForm.controls.precioLitro" />
+                    </div>
                   </div>
 
-                  <mat-form-field class="w-full" appearance="outline">
-                    <mat-label>Observaciones</mat-label>
-                    <textarea matInput rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
-                  </mat-form-field>
+                  <div class="w-full" appearance="outline">
+                    <label class="text-sm font-semibold">Observaciones</label>
+                    <textarea pInputText rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
+                  </div>
               </section>
 
               <section class="app-panel p-4">
@@ -178,39 +162,39 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Grasa (%)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.grasa" />
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Grasa (%)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.grasa" />
                     @if (muestraForm.controls.grasa.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Proteína (%)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.proteina" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Proteína (%)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.proteina" />
                     @if (muestraForm.controls.proteina.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Lactosa (%)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.lactosa" />
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>SNG (%)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.sng" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Lactosa (%)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.lactosa" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">SNG (%)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.sng" />
                     @if (muestraForm.controls.sng.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Sólidos Totales (%)</mat-label>
-                    <input matInput type="number" readonly [formControl]="muestraForm.controls.solidosTotales" />
-                    <mat-hint>Grasa + SNG</mat-hint>
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Sólidos Totales (%)</label>
+                    <input pInputText type="number" readonly [formControl]="muestraForm.controls.solidosTotales" />
+                    <small class="text-muted-color">Grasa + SNG</small>
                     @if (muestraForm.controls.solidosTotales.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
+                  </div>
                 </div>
               </section>
 
@@ -221,27 +205,27 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Densidad (g/mL)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.densidad" />
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Densidad (g/mL)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.densidad" />
                     @if (muestraForm.controls.densidad.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Acidez Dornic (°D)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.acidezDornic" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Acidez Dornic (°D)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.acidezDornic" />
                     @if (muestraForm.controls.acidezDornic.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Temperatura (°C)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.temperaturaC" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Temperatura (°C)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.temperaturaC" />
                     @if (muestraForm.controls.temperaturaC.invalid) {
-                      <mat-error>Requerido</mat-error>
+                      <small class="text-red-600">Requerido</small>
                     }
-                  </mat-form-field>
+                  </div>
                 </div>
               </section>
 
@@ -252,14 +236,14 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <mat-form-field appearance="outline">
-                    <mat-label>UFC Bacterias</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.ufcBacterias" />
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>CC Somáticas</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.ccSomaticas" />
-                  </mat-form-field>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">UFC Bacterias</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.ufcBacterias" />
+                  </div>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">CC Somáticas</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.ccSomaticas" />
+                  </div>
                 </div>
               </section>
 
@@ -270,10 +254,10 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Agua % (opcional)</mat-label>
-                    <input matInput type="number" [formControl]="muestraForm.controls.aguaPct" />
-                  </mat-form-field>
+                  <div appearance="outline">
+                    <label class="text-sm font-semibold">Agua % (opcional)</label>
+                    <input pInputText type="number" [formControl]="muestraForm.controls.aguaPct" />
+                  </div>
                 </div>
               </section>
 
@@ -296,31 +280,28 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                   </div>
                 }
                 <button
-                  mat-raised-button
-                  color="primary"
+                  pButton
+
                   class="w-full md:w-auto"
                   (click)="registrarMuestra()"
                   [disabled]="muestraForm.invalid || busy()"
                   >
                   <span class="inline-flex items-center gap-2">
                     @if (state() === 'submittingMuestra') {
-                      <mat-progress-spinner
-                        diameter="18"
-                        mode="indeterminate"
-                        />
+                      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
                     }
                     Registrar muestra
                   </span>
                 </button>
               </form>
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         }
-    
+
         <!-- Resultado evaluación -->
         @if (muestraCreada()) {
-          <mat-card class="app-card border-emerald-200 bg-emerald-50">
-            <mat-card-content class="app-card-content space-y-4">
+          <div class="app-card border-emerald-200 bg-emerald-50">
+            <div class="app-card-content space-y-4">
               <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div class="text-lg font-semibold text-emerald-900">Muestra registrada</div>
@@ -352,11 +333,11 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                         >
                         <div class="flex items-center justify-between gap-2">
                           <div class="font-medium">{{ prettyKey(k) }}</div>
-                          <mat-chip-set>
-                            <mat-chip [ngClass]="chipClass(por[k].estado)">
+                          <div>
+                            <span [ngClass]="chipClass(por[k].estado)">
                               {{ por[k].estado }}
-                            </mat-chip>
-                          </mat-chip-set>
+                            </span>
+                          </div>
                         </div>
                         @if (por[k].mensajes.length) {
                           <ul class="mt-2 list-disc pl-5 text-sm text-slate-700">
@@ -375,8 +356,8 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                   </div>
                 </div>
               }
-            </mat-card-content>
-          </mat-card>
+            </div>
+          </div>
         }
       </div>
     `,
@@ -394,7 +375,7 @@ export class CargaMuestraPageComponent {
   private destroyRef = inject(DestroyRef);
   private proveedoresApi = inject(ProveedoresApi);
   private muestrasApi = inject(MuestrasApi);
-  private dialog = inject(MatDialog);
+  private dynamicDialog = inject(DialogService);
 
   // estado UI
   readonly state = signal<UiState>('idle');
@@ -582,21 +563,23 @@ export class CargaMuestraPageComponent {
   }
 
   private confirmarProveedorNoEncontrado(tipoIdentificacion: string, identificacion: string) {
-    const ref = this.dialog.open(ProveedorNoEncontradoDialogComponent, {
+    const ref = this.dynamicDialog.open(ProveedorNoEncontradoDialogComponent, {
       data: { tipoIdentificacion, identificacion },
       width: 'min(92vw, 520px)',
-      maxWidth: '92vw',
-      autoFocus: 'first-tabbable',
+      modal: true,
+      closable: false,
+      showHeader: false,
     });
 
-    ref.afterClosed().subscribe((action) => {
+    if (!ref) return;
+    ref.onClose.subscribe((action) => {
       if (action !== 'crear') return;
       this.abrirCrearProveedor(tipoIdentificacion, identificacion);
     });
   }
 
   private abrirCrearProveedor(tipoIdentificacion: string, identificacion: string) {
-    const ref = this.dialog.open(ProveedorFormDialogComponent, {
+    const ref = this.dynamicDialog.open(ProveedorFormDialogComponent, {
       data: {
         initialValues: {
           tipoIdentificacion,
@@ -604,11 +587,14 @@ export class CargaMuestraPageComponent {
         },
       },
       width: 'min(92vw, 560px)',
-      maxWidth: '92vw',
-      autoFocus: 'first-tabbable',
+      modal: true,
+      closable: false,
+      showHeader: false,
     });
 
-    ref.afterClosed().subscribe((proveedor?: ProveedorResp) => {
+    if (!ref) return;
+
+    ref.onClose.subscribe((proveedor?: ProveedorResp) => {
       if (!proveedor) return;
       this.proveedor.set(proveedor);
       this.bannerError.set(null);
