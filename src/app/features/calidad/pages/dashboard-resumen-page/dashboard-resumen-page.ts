@@ -52,12 +52,12 @@ interface PromedioResumenView {
           </div>
 
           <div class="grid grid-cols-1 gap-3 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <div appearance="outline">
+            <div class="app-field">
               <label class="text-sm font-semibold">Tipo</label>
               <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
             </div>
 
-            <div appearance="outline">
+            <div class="app-field">
               <label class="text-sm font-semibold">Identificación</label>
               <input
                 pInputText
@@ -69,7 +69,7 @@ interface PromedioResumenView {
             <button
               pButton
 
-              class="w-full lg:w-auto lg:mt-1"
+              class="w-full lg:w-auto lg:self-end"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
             >
@@ -81,7 +81,7 @@ interface PromedioResumenView {
               </span>
             </button>
 
-            <button pButton class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
+            <button pButton class="w-full lg:w-auto lg:self-end" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
@@ -138,11 +138,11 @@ interface PromedioResumenView {
             </div>
 
             <form class="grid grid-cols-1 gap-3 md:grid-cols-2" [formGroup]="filtrosForm">
-              <div appearance="outline">
+              <div class="app-field">
                 <label class="text-sm font-semibold">Desde (Instant ISO - Z)</label>
                 <input pInputText [formControl]="filtrosForm.controls.desde" />
               </div>
-              <div appearance="outline">
+              <div class="app-field">
                 <label class="text-sm font-semibold">Hasta (Instant ISO - Z)</label>
                 <input pInputText [formControl]="filtrosForm.controls.hasta" />
               </div>

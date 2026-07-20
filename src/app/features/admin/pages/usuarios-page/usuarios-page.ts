@@ -39,7 +39,7 @@ type TagSeverity = 'secondary' | 'success' | 'info' | 'warn' | 'danger' | 'contr
         <p-button styleClass="w-full sm:w-auto" label="Consultar" icon="pi pi-search" (onClick)="buscar(0)" [loading]="state() === 'loading'" [disabled]="busy()" />
       </div>
 
-      <p-card styleClass="app-card">
+      <p-card class="app-card">
         <form class="grid grid-cols-1 gap-4 md:grid-cols-3" [formGroup]="form">
           <div class="flex flex-col gap-2"><label for="usuarios-q" class="font-semibold">Búsqueda</label><input id="usuarios-q" pInputText placeholder="Nombre o correo..." [formControl]="form.controls.q" /></div>
           <div class="flex flex-col gap-2"><label for="usuarios-activo" class="font-semibold">Estado</label><p-select inputId="usuarios-activo" [options]="estadoOptions" optionLabel="label" optionValue="value" [formControl]="form.controls.activo" /></div>
@@ -52,7 +52,7 @@ type TagSeverity = 'secondary' | 'success' | 'info' | 'warn' | 'danger' | 'contr
 
       <div class="usuarios-mobile-list space-y-3">
         @for (usuario of items(); track usuario.id) {
-          <p-card styleClass="app-card">
+          <p-card class="app-card">
             <div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="truncate text-base font-semibold">{{ usuario.nombre }}</div><div class="mt-1 break-all text-sm text-muted-color">{{ usuario.email }}</div></div><p-tag [value]="usuario.activo ? 'Activo' : 'Inactivo'" [severity]="usuario.activo ? 'success' : 'secondary'" /></div>
             <div class="mt-3 flex flex-wrap gap-2">@for (rol of usuario.roles; track rol) { <p-tag [value]="etiquetaRol(rol)" [severity]="severidadRol(rol)" /> }</div>
             @if (esUsuarioActual(usuario)) { <div class="mt-3 text-xs text-muted-color"><i class="pi pi-info-circle mr-1"></i>Tu propia cuenta se protege desde esta pantalla.</div> }
@@ -62,11 +62,11 @@ type TagSeverity = 'secondary' | 'success' | 'info' | 'warn' | 'danger' | 'contr
               @else { <p-button label="Activar" icon="pi pi-check" severity="success" [outlined]="true" (onClick)="confirmarEstado(usuario, true)" [disabled]="busy()" /> }
             </div>
           </p-card>
-        } @empty { <p-card styleClass="app-card"><div class="py-6 text-center text-muted-color">No se encontraron usuarios.</div></p-card> }
+        } @empty { <p-card class="app-card"><div class="py-6 text-center text-muted-color">No se encontraron usuarios.</div></p-card> }
         <p-paginator [first]="offset()" [rows]="limit()" [totalRecords]="total()" [rowsPerPageOptions]="pageSizeOptions" (onPageChange)="onPage($event)" />
       </div>
 
-      <p-card styleClass="app-card usuarios-desktop-table">
+      <p-card class="app-card usuarios-desktop-table">
         <p-table [value]="items()" [loading]="state() === 'loading'" [tableStyle]="{ 'min-width': '64rem' }">
           <ng-template #header><tr><th>ID</th><th>Usuario</th><th>Roles</th><th>Estado</th><th>Acciones</th></tr></ng-template>
           <ng-template #body let-usuario><tr>

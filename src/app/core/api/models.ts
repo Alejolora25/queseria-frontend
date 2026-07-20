@@ -49,8 +49,8 @@ export interface HigieneReq {
 export interface CrearMuestraReq {
   proveedorId: number;
   fechaMuestra: string; // OffsetDateTime ISO (con -05:00)
-  volumenLitros?: number | null;
-  precioLitro?: number | null;
+  volumenLitros: number;
+  precioLitro: number;
   observaciones?: string | null;
   composicion: ComposicionReq;
   fisicoQuimico: FisicoQuimicoReq;

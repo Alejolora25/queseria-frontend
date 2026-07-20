@@ -35,7 +35,7 @@ type UiState = 'idle' | 'loading' | 'saving';
         <p-button styleClass="w-full sm:w-auto" label="Consultar" icon="pi pi-search" (onClick)="buscar(0)" [loading]="state() === 'loading'" [disabled]="busy()" />
       </div>
 
-      <p-card styleClass="app-card">
+      <p-card class="app-card">
         <form class="grid grid-cols-1 gap-4 md:grid-cols-3" [formGroup]="form">
           <div class="flex flex-col gap-2"><label for="q" class="font-semibold">Búsqueda</label><input id="q" pInputText placeholder="Nombre / identificación..." [formControl]="form.controls.q" /></div>
           <div class="flex flex-col gap-2"><label for="activo" class="font-semibold">Estado</label><p-select inputId="activo" [options]="estadoOptions" optionLabel="label" optionValue="value" [formControl]="form.controls.activo" /></div>
@@ -49,7 +49,7 @@ type UiState = 'idle' | 'loading' | 'saving';
 
       <div class="providers-mobile-list space-y-3">
         @for (r of items(); track r.id) {
-          <p-card styleClass="app-card">
+          <p-card class="app-card">
             <div class="flex items-start justify-between gap-3"><div class="min-w-0"><div class="truncate text-base font-semibold">{{ r.nombre }}</div><div class="mt-1 text-sm text-muted-color">{{ r.tipoIdentificacion }} {{ r.identificacion }}</div></div><p-tag [value]="r.activo ? 'Activo' : 'Inactivo'" [severity]="r.activo ? 'success' : 'secondary'" /></div>
             @if (puedeGestionarProveedores()) {
               <div class="mt-4 flex flex-col gap-2"><p-button label="Editar" icon="pi pi-pencil" [outlined]="true" (onClick)="editar(r)" [disabled]="busy()" />@if (r.activo) { <p-button label="Desactivar" icon="pi pi-ban" severity="danger" [outlined]="true" (onClick)="desactivar(r)" [disabled]="busy()" /> } @else { <p-button label="Activar" icon="pi pi-check" severity="success" [outlined]="true" (onClick)="activar(r)" [disabled]="busy()" /> }</div>
@@ -59,7 +59,7 @@ type UiState = 'idle' | 'loading' | 'saving';
         <p-paginator [first]="offset()" [rows]="limit()" [totalRecords]="total()" [rowsPerPageOptions]="pageSizeOptions" (onPageChange)="onPage($event)" />
       </div>
 
-      <p-card styleClass="app-card providers-desktop-table">
+      <p-card class="app-card providers-desktop-table">
         <p-table [value]="items()" [loading]="state() === 'loading'" [tableStyle]="{ 'min-width': '56rem' }">
           <ng-template #header><tr><th>ID</th><th>Nombre</th><th>Identificación</th><th>Estado</th>@if (puedeGestionarProveedores()) { <th>Acciones</th> }</tr></ng-template>
           <ng-template #body let-r><tr><td>{{ r.id }}</td><td class="font-medium">{{ r.nombre }}</td><td>{{ r.tipoIdentificacion }} {{ r.identificacion }}</td><td><p-tag [value]="r.activo ? 'Activo' : 'Inactivo'" [severity]="r.activo ? 'success' : 'secondary'" /></td>@if (puedeGestionarProveedores()) { <td><div class="flex flex-wrap gap-2"><p-button icon="pi pi-pencil" label="Editar" size="small" [outlined]="true" (onClick)="editar(r)" [disabled]="busy()" />@if (r.activo) { <p-button icon="pi pi-ban" label="Desactivar" size="small" severity="danger" [text]="true" (onClick)="desactivar(r)" [disabled]="busy()" /> } @else { <p-button icon="pi pi-check" label="Activar" size="small" severity="success" [text]="true" (onClick)="activar(r)" [disabled]="busy()" /> }</div></td> }</tr></ng-template>

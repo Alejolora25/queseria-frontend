@@ -53,6 +53,21 @@ body {
   padding: 1.25rem !important;
 }
 
+.app-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-field > input,
+.app-field > textarea,
+.app-field > p-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .app-table-frame,
 .app-panel {
   border: 1px solid var(--app-border);

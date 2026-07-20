@@ -42,12 +42,12 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
           </div>
 
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <div class="w-full" appearance="outline">
+            <div class="app-field w-full">
               <label class="text-sm font-semibold">Tipo</label>
               <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
             </div>
 
-            <div class="flex-1 min-w-[240px]" appearance="outline">
+            <div class="app-field min-w-0">
               <label class="text-sm font-semibold">Identificación</label>
               <input pInputText [formControl]="buscarForm.controls.identificacion" placeholder="Ej: 123456789" />
               @if (buscarForm.controls.identificacion.invalid) {
@@ -60,7 +60,7 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
             <button
               pButton
 
-              class="w-full md:w-auto md:mt-1"
+              class="w-full lg:w-auto lg:self-end"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
@@ -74,7 +74,7 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
 
             <button
               pButton
-              class="w-full md:w-auto md:mt-1"
+              class="w-full lg:w-auto lg:self-end"
               (click)="reset()"
               [disabled]="busy()"
               >
@@ -127,30 +127,43 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Fecha de muestra (ISO)</label>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">
+                      Fecha y hora de la muestra <span class="text-red-600">*</span>
+                    </label>
                     <input
                       pInputText
+                      type="datetime-local"
+                      step="60"
                       [formControl]="muestraForm.controls.fechaMuestra"
-                      placeholder="2026-01-12T08:00:00-05:00"
-                      />
-                      <small class="text-muted-color">OffsetDateTime. Ej: -05:00</small>
-                      @if (muestraForm.controls.fechaMuestra.invalid) {
-                        <small class="text-red-600">Requerido</small>
+                    />
+                    <small class="text-muted-color">Se completa automáticamente con la fecha y hora actuales.</small>
+                    @if (muestraForm.controls.fechaMuestra.touched && muestraForm.controls.fechaMuestra.invalid) {
+                      <small class="text-red-600">Selecciona la fecha y hora de la muestra.</small>
                       }
                     </div>
-                    <div appearance="outline">
-                      <label class="text-sm font-semibold">Volumen (L)</label>
-                      <input pInputText type="number" [formControl]="muestraForm.controls.volumenLitros" />
+                    <div class="app-field">
+                      <label class="text-sm font-semibold">Volumen (L) <span class="text-red-600">*</span></label>
+                      <input pInputText type="number" min="0.01" step="any" placeholder="Ingresa el volumen" [formControl]="muestraForm.controls.volumenLitros" />
+                      @if (muestraForm.controls.volumenLitros.touched && muestraForm.controls.volumenLitros.hasError('required')) {
+                        <small class="text-red-600">Ingresa el volumen.</small>
+                      } @else if (muestraForm.controls.volumenLitros.touched && muestraForm.controls.volumenLitros.hasError('min')) {
+                        <small class="text-red-600">El volumen debe ser mayor que cero.</small>
+                      }
                     </div>
-                    <div appearance="outline">
-                      <label class="text-sm font-semibold">Precio/Litro</label>
-                      <input pInputText type="number" [formControl]="muestraForm.controls.precioLitro" />
+                    <div class="app-field">
+                      <label class="text-sm font-semibold">Precio/Litro <span class="text-red-600">*</span></label>
+                      <input pInputText type="number" min="0.01" step="any" placeholder="Ingresa el precio" [formControl]="muestraForm.controls.precioLitro" />
+                      @if (muestraForm.controls.precioLitro.touched && muestraForm.controls.precioLitro.hasError('required')) {
+                        <small class="text-red-600">Ingresa el precio por litro.</small>
+                      } @else if (muestraForm.controls.precioLitro.touched && muestraForm.controls.precioLitro.hasError('min')) {
+                        <small class="text-red-600">El precio debe ser mayor que cero.</small>
+                      }
                     </div>
                   </div>
 
-                  <div class="w-full" appearance="outline">
-                    <label class="text-sm font-semibold">Observaciones</label>
+                  <div class="app-field w-full">
+                    <label class="text-sm font-semibold">Observaciones <span class="text-muted-color font-normal">(opcional)</span></label>
                     <textarea pInputText rows="2" [formControl]="muestraForm.controls.observaciones"></textarea>
                   </div>
               </section>
@@ -162,37 +175,37 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Grasa (%)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.grasa" />
-                    @if (muestraForm.controls.grasa.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Grasa (%) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa la grasa" [formControl]="muestraForm.controls.grasa" />
+                    @if (muestraForm.controls.grasa.touched && muestraForm.controls.grasa.invalid) {
+                      <small class="text-red-600">Ingresa la grasa.</small>
                     }
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Proteína (%)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.proteina" />
-                    @if (muestraForm.controls.proteina.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Proteína (%) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa la proteína" [formControl]="muestraForm.controls.proteina" />
+                    @if (muestraForm.controls.proteina.touched && muestraForm.controls.proteina.invalid) {
+                      <small class="text-red-600">Ingresa la proteína.</small>
                     }
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Lactosa (%)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.lactosa" />
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Lactosa (%) <span class="text-muted-color font-normal">(opcional)</span></label>
+                    <input pInputText type="number" step="any" placeholder="Opcional" [formControl]="muestraForm.controls.lactosa" />
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">SNG (%)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.sng" />
-                    @if (muestraForm.controls.sng.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">SNG (%) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa el SNG" [formControl]="muestraForm.controls.sng" />
+                    @if (muestraForm.controls.sng.touched && muestraForm.controls.sng.invalid) {
+                      <small class="text-red-600">Ingresa los sólidos no grasos.</small>
                     }
                   </div>
-                  <div appearance="outline">
+                  <div class="app-field">
                     <label class="text-sm font-semibold">Sólidos Totales (%)</label>
-                    <input pInputText type="number" readonly [formControl]="muestraForm.controls.solidosTotales" />
+                    <input pInputText type="number" readonly placeholder="Se calcula automáticamente" [formControl]="muestraForm.controls.solidosTotales" />
                     <small class="text-muted-color">Grasa + SNG</small>
-                    @if (muestraForm.controls.solidosTotales.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                    @if (muestraForm.controls.solidosTotales.touched && muestraForm.controls.solidosTotales.invalid) {
+                      <small class="text-red-600">Completa Grasa y SNG para calcularlo.</small>
                     }
                   </div>
                 </div>
@@ -205,25 +218,25 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Densidad (g/mL)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.densidad" />
-                    @if (muestraForm.controls.densidad.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Densidad (g/mL) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa la densidad" [formControl]="muestraForm.controls.densidad" />
+                    @if (muestraForm.controls.densidad.touched && muestraForm.controls.densidad.invalid) {
+                      <small class="text-red-600">Ingresa la densidad.</small>
                     }
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Acidez Dornic (°D)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.acidezDornic" />
-                    @if (muestraForm.controls.acidezDornic.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Acidez Dornic (°D) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa la acidez" [formControl]="muestraForm.controls.acidezDornic" />
+                    @if (muestraForm.controls.acidezDornic.touched && muestraForm.controls.acidezDornic.invalid) {
+                      <small class="text-red-600">Ingresa la acidez Dornic.</small>
                     }
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Temperatura (°C)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.temperaturaC" />
-                    @if (muestraForm.controls.temperaturaC.invalid) {
-                      <small class="text-red-600">Requerido</small>
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Temperatura (°C) <span class="text-red-600">*</span></label>
+                    <input pInputText type="number" step="any" placeholder="Ingresa la temperatura" [formControl]="muestraForm.controls.temperaturaC" />
+                    @if (muestraForm.controls.temperaturaC.touched && muestraForm.controls.temperaturaC.invalid) {
+                      <small class="text-red-600">Ingresa la temperatura.</small>
                     }
                   </div>
                 </div>
@@ -236,13 +249,13 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">UFC Bacterias</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.ufcBacterias" />
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">UFC Bacterias <span class="text-muted-color font-normal">(opcional)</span></label>
+                    <input pInputText type="number" min="0" step="1" placeholder="Opcional" [formControl]="muestraForm.controls.ufcBacterias" />
                   </div>
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">CC Somáticas</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.ccSomaticas" />
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">CC Somáticas <span class="text-muted-color font-normal">(opcional)</span></label>
+                    <input pInputText type="number" min="0" step="1" placeholder="Opcional" [formControl]="muestraForm.controls.ccSomaticas" />
                   </div>
                 </div>
               </section>
@@ -254,9 +267,9 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div appearance="outline">
-                    <label class="text-sm font-semibold">Agua % (opcional)</label>
-                    <input pInputText type="number" [formControl]="muestraForm.controls.aguaPct" />
+                  <div class="app-field">
+                    <label class="text-sm font-semibold">Agua añadida (%) <span class="text-muted-color font-normal">(opcional)</span></label>
+                    <input pInputText type="number" min="0" step="any" placeholder="Opcional" [formControl]="muestraForm.controls.aguaPct" />
                   </div>
                 </div>
               </section>
@@ -284,7 +297,7 @@ type UiState = 'idle' | 'searching' | 'submittingMuestra';
 
                   class="w-full md:w-auto"
                   (click)="registrarMuestra()"
-                  [disabled]="muestraForm.invalid || busy()"
+                  [disabled]="busy()"
                   >
                   <span class="inline-flex items-center gap-2">
                     @if (state() === 'submittingMuestra') {
@@ -394,27 +407,27 @@ export class CargaMuestraPageComponent {
     identificacion: ['', Validators.required],
   });
 
-  readonly muestraForm = this.fb.nonNullable.group({
+  readonly muestraForm = this.fb.group({
     // meta
-    fechaMuestra: [this.defaultNowOffsetIso(), Validators.required],
-    volumenLitros: [0],
-    precioLitro: [0],
+    fechaMuestra: [this.defaultNowLocalDateTime(), Validators.required],
+    volumenLitros: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    precioLitro: [null as number | null, [Validators.required, Validators.min(0.01)]],
     observaciones: [''],
 
     // composicion
-    grasa: [0, Validators.required],
-    proteina: [0, Validators.required],
-    lactosa: [0],
-    solidosTotales: [0, Validators.required],
+    grasa: [null as number | null, Validators.required],
+    proteina: [null as number | null, Validators.required],
+    lactosa: [null as number | null],
+    solidosTotales: [null as number | null, Validators.required],
 
     // fisicoquimico
-    densidad: [1.03, Validators.required],
-    acidezDornic: [15, Validators.required],
-    temperaturaC: [18, Validators.required],
+    densidad: [null as number | null, Validators.required],
+    acidezDornic: [null as number | null, Validators.required],
+    temperaturaC: [null as number | null, Validators.required],
 
     // higiene
-    ufcBacterias: [0],
-    ccSomaticas: [0],
+    ufcBacterias: [null as number | null],
+    ccSomaticas: [null as number | null],
 
     // composicion complementaria
     sng: [null as number | null, Validators.required],
@@ -441,7 +454,23 @@ export class CargaMuestraPageComponent {
     this.muestraCreada.set(null);
 
     this.buscarForm.reset({ tipoIdentificacion: 'CC', identificacion: '' });
-    this.muestraForm.patchValue({ fechaMuestra: this.defaultNowOffsetIso() });
+    this.muestraForm.reset({
+      fechaMuestra: this.defaultNowLocalDateTime(),
+      volumenLitros: null,
+      precioLitro: null,
+      observaciones: '',
+      grasa: null,
+      proteina: null,
+      lactosa: null,
+      solidosTotales: null,
+      densidad: null,
+      acidezDornic: null,
+      temperaturaC: null,
+      ufcBacterias: null,
+      ccSomaticas: null,
+      sng: null,
+      aguaPct: null,
+    });
   }
 
   buscarProveedor() {
@@ -485,21 +514,27 @@ export class CargaMuestraPageComponent {
     const proveedor = this.proveedor();
     if (!proveedor) return;
 
+    if (this.muestraForm.invalid) {
+      this.muestraForm.markAllAsTouched();
+      this.muestraError.set('Completa los campos obligatorios antes de registrar la muestra.');
+      return;
+    }
+
     const v = this.muestraForm.getRawValue();
 
     const payload: CrearMuestraReq = {
       proveedorId: proveedor.id,
-      fechaMuestra: v.fechaMuestra,
+      fechaMuestra: this.toOffsetDateTime(v.fechaMuestra!),
 
-      volumenLitros: this.nullIfEmptyNumber(v.volumenLitros),
-      precioLitro: this.nullIfEmptyNumber(v.precioLitro),
+      volumenLitros: Number(v.volumenLitros),
+      precioLitro: Number(v.precioLitro),
       observaciones: (v.observaciones ?? '').trim() || null,
 
       composicion: {
         grasa: Number(v.grasa),
         proteina: Number(v.proteina),
-        lactosa: this.nullIfEmptyNumber(v.lactosa),
-        solidosTotales: this.calcularSolidosTotales(v.grasa, v.sng),
+        lactosa: this.zeroIfEmptyNumber(v.lactosa),
+        solidosTotales: Number(v.solidosTotales),
       },
       fisicoQuimico: {
         densidad: Number(v.densidad),
@@ -507,11 +542,11 @@ export class CargaMuestraPageComponent {
         temperaturaC: Number(v.temperaturaC),
       },
       higiene: {
-        ufcBacterias: this.nullIfEmptyNumber(v.ufcBacterias),
-        ccSomaticas: this.nullIfEmptyNumber(v.ccSomaticas),
+        ufcBacterias: this.zeroIfEmptyNumber(v.ufcBacterias),
+        ccSomaticas: this.zeroIfEmptyNumber(v.ccSomaticas),
       },
       sng: Number(v.sng),
-      aguaPct: v.aguaPct ?? null,
+      aguaPct: this.zeroIfEmptyNumber(v.aguaPct),
     };
 
     this.state.set('submittingMuestra');
@@ -602,11 +637,10 @@ export class CargaMuestraPageComponent {
     });
   }
 
-  private nullIfEmptyNumber(v: unknown): number | null {
-    if (v === null || v === undefined) return null;
+  private zeroIfEmptyNumber(v: unknown): number {
+    if (v === null || v === undefined || v === '') return 0;
     const n = Number(v);
-    // si dejas 0 como válido, no lo convertimos a null
-    return Number.isFinite(n) ? n : null;
+    return Number.isFinite(n) ? n : 0;
   }
 
   private actualizarSolidosTotales() {
@@ -618,30 +652,43 @@ export class CargaMuestraPageComponent {
     this.muestraForm.controls.solidosTotales.setValue(total, { emitEvent: false });
   }
 
-  private calcularSolidosTotales(grasa: unknown, sng: unknown): number {
+  private calcularSolidosTotales(grasa: unknown, sng: unknown): number | null {
+    if (grasa === null || grasa === undefined || grasa === '' || sng === null || sng === undefined || sng === '') {
+      return null;
+    }
+
     const grasaNum = Number(grasa);
     const sngNum = Number(sng);
 
     if (!Number.isFinite(grasaNum) || !Number.isFinite(sngNum)) {
-      return 0;
+      return null;
     }
 
     return Number((grasaNum + sngNum).toFixed(2));
   }
 
-  private defaultNowOffsetIso(): string {
-    // tu backend pide OffsetDateTime. En Colombia -05:00
+  private defaultNowLocalDateTime(): string {
     const now = new Date();
     const pad = (x: number) => String(x).padStart(2, '0');
 
-    // generar "YYYY-MM-DDTHH:mm:ss-05:00" (sin ms)
     const y = now.getFullYear();
     const m = pad(now.getMonth() + 1);
     const d = pad(now.getDate());
     const hh = pad(now.getHours());
     const mm = pad(now.getMinutes());
-    const ss = pad(now.getSeconds());
 
-    return `${y}-${m}-${d}T${hh}:${mm}:${ss}-05:00`;
+    return `${y}-${m}-${d}T${hh}:${mm}`;
+  }
+
+  private toOffsetDateTime(localValue: string): string {
+    const localDate = new Date(localValue);
+    const offsetMinutes = -localDate.getTimezoneOffset();
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    const absoluteOffset = Math.abs(offsetMinutes);
+    const offsetHours = String(Math.floor(absoluteOffset / 60)).padStart(2, '0');
+    const offsetRemainder = String(absoluteOffset % 60).padStart(2, '0');
+    const valueWithSeconds = localValue.length === 16 ? `${localValue}:00` : localValue;
+
+    return `${valueWithSeconds}${sign}${offsetHours}:${offsetRemainder}`;
   }
 }

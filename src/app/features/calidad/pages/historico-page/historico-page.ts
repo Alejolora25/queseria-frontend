@@ -38,12 +38,12 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
       <div class="app-card">
         <div class="app-card-content space-y-3">
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(320px,1fr)_auto_auto] lg:items-start">
-            <div class="w-full" appearance="outline">
+            <div class="app-field w-full">
               <label class="text-sm font-semibold">Tipo</label>
               <p-select [options]="['CC', 'NIT']" [formControl]="buscarForm.controls.tipoIdentificacion" />
             </div>
 
-            <div class="flex-1 min-w-[240px]" appearance="outline">
+            <div class="app-field min-w-0">
               <label class="text-sm font-semibold">Identificación</label>
               <input pInputText [formControl]="buscarForm.controls.identificacion" placeholder="Ej: NIT-123" />
               @if (buscarForm.controls.identificacion.invalid) {
@@ -54,7 +54,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
             <button
               pButton
 
-              class="w-full lg:w-auto lg:mt-1"
+              class="w-full lg:w-auto lg:self-end"
               (click)="buscarProveedor()"
               [disabled]="buscarForm.invalid || busy()"
               >
@@ -66,7 +66,7 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               </span>
             </button>
 
-            <button pButton class="w-full lg:w-auto lg:mt-1" (click)="reset()" [disabled]="busy()">
+            <button pButton class="w-full lg:w-auto lg:self-end" (click)="reset()" [disabled]="busy()">
               Limpiar
             </button>
           </div>
@@ -119,21 +119,21 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               </button>
             </div>
             <form class="grid grid-cols-1 md:grid-cols-3 gap-3" [formGroup]="filtrosForm">
-              <div appearance="outline">
+              <div class="app-field">
                 <label class="text-sm font-semibold">Desde (ISO)</label>
                 <input pInputText [formControl]="filtrosForm.controls.desde" />
                 @if (filtrosForm.controls.desde.invalid) {
                   <small class="text-red-600">Requerido</small>
                 }
               </div>
-              <div appearance="outline">
+              <div class="app-field">
                 <label class="text-sm font-semibold">Hasta (ISO)</label>
                 <input pInputText [formControl]="filtrosForm.controls.hasta" />
                 @if (filtrosForm.controls.hasta.invalid) {
                   <small class="text-red-600">Requerido</small>
                 }
               </div>
-              <div appearance="outline">
+              <div class="app-field">
                 <label class="text-sm font-semibold">Tamaño de página</label>
                 <p-select [options]="[10, 20, 50, 100]" [formControl]="filtrosForm.controls.limit" />
               </div>

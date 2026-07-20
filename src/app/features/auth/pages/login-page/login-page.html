@@ -51,8 +51,8 @@
         <form class="space-y-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           <div class="flex flex-col gap-2">
             <label for="email" class="text-sm font-semibold text-slate-800">Correo electrónico</label>
-            <span class="p-input-icon-left login-input-wrap">
-              <i class="pi pi-envelope"></i>
+            <p-iconfield iconPosition="left" class="w-full">
+              <p-inputicon class="pi pi-envelope" />
               <input
                 id="email"
                 pInputText
@@ -63,7 +63,7 @@
                 placeholder="nombre@queseria.com"
                 [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
               />
-            </span>
+            </p-iconfield>
             @if (form.controls.email.touched && form.controls.email.hasError('required')) {
               <small class="text-red-700">El correo es obligatorio.</small>
             } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
@@ -80,7 +80,7 @@
               placeholder="Ingresa tu contraseña"
               [feedback]="false"
               [toggleMask]="true"
-              styleClass="w-full"
+              class="w-full"
               inputStyleClass="w-full"
               [invalid]="form.controls.password.invalid && form.controls.password.touched"
             />

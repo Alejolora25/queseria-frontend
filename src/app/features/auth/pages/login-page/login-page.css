@@ -35,15 +35,3 @@
     0 0 0 7rem rgba(255, 255, 255, 0.025);
   content: '';
 }
-
-.login-input-wrap {
-  display: block;
-}
-
-.login-input-wrap > i {
-  color: var(--app-muted);
-}
-
-.login-input-wrap > input {
-  padding-left: 2.7rem;
-}
