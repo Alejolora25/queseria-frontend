@@ -18,7 +18,7 @@ import { environment } from '../../../../../environments/environment';
 import { AnaliticasApi } from '../../../../core/api/analiticas.api';
 import { AnaliticaDialogComponent } from '../../components/analitica-dialog/analitica-dialog';
 
-type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
+type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico' | 'loadingAnalitica';
 
 @Component({
   standalone: true,
@@ -204,7 +204,14 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
                     }
 
                     <button class="w-full" pButton (click)="verAnalitica(r.id)" [disabled]="busy()">
-                      Ver analítica
+                      <span class="inline-flex items-center gap-2">
+                        @if (state() === 'loadingAnalitica' && analiticaCargandoId() === r.id) {
+                          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                          Calculando analítica...
+                        } @else {
+                          Ver analítica
+                        }
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -216,7 +223,26 @@ type UiState = 'idle' | 'searchingProveedor' | 'loadingHistorico';
               <div class="app-table-frame overflow-auto">
                 <p-table [value]="items()" [loading]="state() === 'loadingHistorico'" [tableStyle]="{ 'min-width': '900px' }">
   <ng-template #header><tr><th>Fecha</th><th>Vol (L)</th><th>Precio/L</th><th>Grasa</th><th>Prot</th><th>ST</th><th>Dens</th><th>°D</th><th>°C</th><th>Obs</th><th>Acciones</th></tr></ng-template>
-  <ng-template #body let-r><tr><td>{{ r.fechaMuestra }}</td><td>{{ r.volumenLitros ?? '' }}</td><td>{{ r.precioLitro ?? '' }}</td><td>{{ r.grasa }}</td><td>{{ r.proteina }}</td><td>{{ r.solidosTotales }}</td><td>{{ r.densidad }}</td><td>{{ r.acidezDornic }}</td><td>{{ r.temperaturaC }}</td><td>{{ r.observaciones ?? '' }}</td><td><button pButton (click)="verAnalitica(r.id)" [disabled]="busy()">Ver analítica</button></td></tr></ng-template>
+  <ng-template #body let-r>
+    <tr>
+      <td>{{ r.fechaMuestra }}</td><td>{{ r.volumenLitros ?? '' }}</td><td>{{ r.precioLitro ?? '' }}</td>
+      <td>{{ r.grasa }}</td><td>{{ r.proteina }}</td><td>{{ r.solidosTotales }}</td>
+      <td>{{ r.densidad }}</td><td>{{ r.acidezDornic }}</td><td>{{ r.temperaturaC }}</td>
+      <td>{{ r.observaciones ?? '' }}</td>
+      <td>
+        <button pButton (click)="verAnalitica(r.id)" [disabled]="busy()">
+          <span class="inline-flex items-center gap-2">
+            @if (state() === 'loadingAnalitica' && analiticaCargandoId() === r.id) {
+              <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+              Calculando...
+            } @else {
+              Ver analítica
+            }
+          </span>
+        </button>
+      </td>
+    </tr>
+  </ng-template>
 </p-table>
               </div>
             </div>
@@ -237,6 +263,7 @@ export class HistoricoPageComponent {
   private dialog = inject(DialogService);
 
   readonly analiticaError = signal<string | null>(null);
+  readonly analiticaCargandoId = signal<number | null>(null);
 
   readonly state = signal<UiState>('idle');
   readonly proveedor = signal<ProveedorResp | null>(null);
@@ -282,7 +309,8 @@ export class HistoricoPageComponent {
     this.proveedor.set(null);
     this.bannerError.set(null);
     this.histError.set(null);
-    this.analiticaError.set(null); 
+    this.analiticaError.set(null);
+    this.analiticaCargandoId.set(null);
     this.items.set([]);
     this.total.set(0);
     this.offset.set(0);
@@ -374,12 +402,15 @@ export class HistoricoPageComponent {
 
   verAnalitica(sampleId: number) {
     this.analiticaError.set(null);
+    this.state.set('loadingAnalitica');
+    this.analiticaCargandoId.set(sampleId);
 
     this.analiticasApi.porMuestra(sampleId).subscribe({
       next: (doc) => {
-        // Si el backend devuelve 200 sin body, doc podría venir undefined/null según implementación.
+        this.state.set('idle');
+        this.analiticaCargandoId.set(null);
         if (!doc) {
-          this.analiticaError.set('No hay analítica registrada para esta muestra.');
+          this.analiticaError.set('No fue posible calcular la analítica de esta muestra.');
           return;
         }
 
@@ -392,8 +423,10 @@ export class HistoricoPageComponent {
         });
       },
       error: (err) => {
+        this.state.set('idle');
+        this.analiticaCargandoId.set(null);
         const parsed = parseApiError(err);
-        this.analiticaError.set(parsed.status === 404 ? 'No hay analítica para esta muestra' : parsed.message);
+        this.analiticaError.set(parsed.status === 404 ? 'La muestra ya no existe' : parsed.message);
       },
     });
   }

@@ -118,7 +118,7 @@ export interface ResumenProveedorResp {
 
 // ===== Btn Ver Analítica =====
 export interface AnaliticaMuestraDocResp {
-  id: string;
+  id?: string | null;
   sampleId: number;
   proveedorId: number;
   timestamp: string; // Instant ISO
