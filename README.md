@@ -39,6 +39,16 @@ npm test
 
 ## Contratos con el backend
 
+El usuario `PLATFORM_ADMIN` entra a `/plataforma`. Desde allí puede consultar,
+crear, editar, activar y desactivar queserías; consultar sus administradores y
+regenerar una credencial temporal con motivo; y gestionar administradores de
+plataforma. La contraseña temporal se muestra únicamente al crearla o
+regenerarla. Un administrador de quesería continúa entrando al área operativa,
+sin acceso a este panel. Para probar el panel local, reinicia el backend con el
+cambio de API y usa la cuenta de plataforma ya migrada.
+
+Las comprobaciones automatizadas se ejecutan con `npm run test:headless`.
+
 La reorganización interna del backend no cambia las rutas públicas. Las pantallas
 de administración y selección de proveedores continúan usando:
 

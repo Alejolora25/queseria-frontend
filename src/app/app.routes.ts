@@ -23,8 +23,8 @@ export const routes: Routes = [
   {
     path: 'plataforma',
     canActivate: [platformInfoGuard],
-    loadComponent: () => import('./features/auth/pages/plataforma-info-page/plataforma-info-page')
-      .then(m => m.PlataformaInfoPageComponent),
+    loadComponent: () => import('./features/plataforma/pages/plataforma-page/plataforma-page')
+      .then(m => m.PlataformaPageComponent),
   },
 
   {
