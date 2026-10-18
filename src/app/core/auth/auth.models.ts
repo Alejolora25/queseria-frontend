@@ -13,6 +13,7 @@ export interface UsuarioSesion {
   email: string;
   roles: RolSesion[];
   queseriaId: number | null;
+  nombreQueseria?: string | null;
   tipoUsuario: TipoUsuario | null;
   debeCambiarPassword: boolean;
 }

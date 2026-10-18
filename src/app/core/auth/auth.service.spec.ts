@@ -17,6 +17,7 @@ describe('AuthService', () => {
       email: 'admin@queseria.local',
       roles: ['ADMIN', 'LECTOR'],
       queseriaId: null,
+      nombreQueseria: 'Quesería La Esperanza',
     },
   };
 

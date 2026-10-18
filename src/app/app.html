@@ -18,7 +18,7 @@
             Q
           </div>
           <div>
-            <div class="text-lg font-semibold tracking-tight">Quesería</div>
+            <div class="max-w-[185px] truncate text-lg font-semibold tracking-tight" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
             <div class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
               Calidad de leche
             </div>
@@ -70,7 +70,7 @@
       </button>
 
       <div class="text-center">
-        <div class="font-semibold leading-tight">Quesería</div>
+        <div class="max-w-[220px] truncate font-semibold leading-tight" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
         <div class="text-xs text-slate-500">Calidad de leche</div>
       </div>
 
@@ -100,7 +100,7 @@
               Q
             </div>
             <div>
-              <div class="font-semibold">Quesería</div>
+              <div class="max-w-[185px] truncate font-semibold" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
               <div class="text-xs text-slate-500">Calidad de leche</div>
             </div>
           </div>

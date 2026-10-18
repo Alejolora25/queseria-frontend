@@ -34,6 +34,9 @@ export class App {
   );
   protected readonly authFeedback = this.authFeedbackService.feedback;
   protected readonly usuarioActual = this.authService.usuarioActual;
+  protected readonly nombreQueseria = computed(() =>
+    this.usuarioActual()?.nombreQueseria?.trim() || 'Quesería',
+  );
   protected readonly inicialUsuario = computed(() =>
     this.usuarioActual()?.nombre.trim().charAt(0).toUpperCase() || 'U',
   );
