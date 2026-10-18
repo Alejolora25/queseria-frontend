@@ -22,12 +22,14 @@ describe('AuthService', () => {
 
   let service: AuthService;
   let loginSpy: jasmine.Spy<(request: LoginRequest) => Observable<LoginResponse>>;
+  let changeSpy: jasmine.Spy;
   let readSpy: jasmine.Spy<() => SesionPersistida | null>;
   let writeSpy: jasmine.Spy<(session: SesionPersistida) => void>;
   let clearSpy: jasmine.Spy<() => void>;
 
   function configure(restoredSession: SesionPersistida | null = null): void {
     loginSpy = jasmine.createSpy('login');
+    changeSpy = jasmine.createSpy('cambiarPasswordObligatoria');
     readSpy = jasmine.createSpy('read').and.returnValue(restoredSession);
     writeSpy = jasmine.createSpy('write');
     clearSpy = jasmine.createSpy('clear');
@@ -35,7 +37,9 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({
       providers: [
         AuthService,
-        { provide: AuthApi, useValue: { login: loginSpy } },
+        { provide: AuthApi, useValue: {
+          login: loginSpy, cambiarPasswordObligatoria: changeSpy,
+        } },
         {
           provide: AuthSessionStorage,
           useValue: { read: readSpy, write: writeSpy, clear: clearSpy },
@@ -70,10 +74,12 @@ describe('AuthService', () => {
     });
     const persistedSession = writeSpy.calls.mostRecent().args[0];
     expect(persistedSession.accessToken).toBe('jwt-token');
-    expect(persistedSession.usuario).toEqual(response.usuario);
+    expect(persistedSession.usuario).toEqual({
+      ...response.usuario, tipoUsuario: null, debeCambiarPassword: false,
+    });
     expect(persistedSession.expiresIn).toBe(3600);
     expect(persistedSession.expiresAt).toBeGreaterThanOrEqual(beforeLogin + 3_600_000);
-    expect(service.usuarioActual()).toEqual(response.usuario);
+    expect(service.usuarioActual()).toEqual(persistedSession.usuario);
     expect(service.accessToken()).toBe('jwt-token');
     expect(service.autenticado()).toBeTrue();
     expect(service.tieneRol('ADMIN')).toBeTrue();
@@ -85,12 +91,12 @@ describe('AuthService', () => {
       accessToken: response.accessToken,
       expiresIn: response.expiresIn,
       expiresAt: Date.now() + 60_000,
-      usuario: response.usuario,
+      usuario: { ...response.usuario, tipoUsuario: null, debeCambiarPassword: false },
     };
 
     configure(storedSession);
 
-    expect(service.usuarioActual()).toEqual(response.usuario);
+    expect(service.usuarioActual()).toEqual(storedSession.usuario);
     expect(service.accessToken()).toBe(response.accessToken);
     expect(service.expiresAt()).toBe(storedSession.expiresAt);
     expect(service.autenticado()).toBeTrue();
@@ -101,7 +107,7 @@ describe('AuthService', () => {
       accessToken: response.accessToken,
       expiresIn: response.expiresIn,
       expiresAt: Date.now() - 1,
-      usuario: response.usuario,
+      usuario: { ...response.usuario, tipoUsuario: null, debeCambiarPassword: false },
     });
 
     expect(clearSpy).toHaveBeenCalled();
@@ -122,7 +128,9 @@ describe('AuthService', () => {
     });
 
     expect(writeSpy).not.toHaveBeenCalled();
-    expect(service.usuarioActual()).toEqual(response.usuario);
+    expect(service.usuarioActual()).toEqual({
+      ...response.usuario, tipoUsuario: null, debeCambiarPassword: false,
+    });
     expect(service.accessToken()).toBe('jwt-token');
     expect(service.autenticado()).toBeTrue();
   });
@@ -141,5 +149,25 @@ describe('AuthService', () => {
     expect(service.expiresAt()).toBeNull();
     expect(service.roles()).toEqual([]);
     expect(service.autenticado()).toBeFalse();
+  });
+
+  it('replaces a temporary session only after password change succeeds', () => {
+    configure();
+    loginSpy.and.returnValue(of({ ...response, usuario: {
+      ...response.usuario, tipoUsuario: 'QUESERIA', queseriaId: 9,
+      debeCambiarPassword: true,
+    } }));
+    service.login({ email: response.usuario.email, password: 'Temporal123*' }).subscribe();
+    expect(service.debeCambiarPassword()).toBeTrue();
+
+    changeSpy.and.returnValue(of({ accessToken: 'nuevo-jwt', expiresIn: 1800 }));
+    service.cambiarPasswordObligatoria({
+      passwordActual: 'Temporal123*', passwordNueva: 'NuevaSegura123*',
+    }).subscribe();
+
+    expect(service.accessToken()).toBe('nuevo-jwt');
+    expect(service.debeCambiarPassword()).toBeFalse();
+    expect(service.usuarioActual()?.queseriaId).toBe(9);
+    expect(writeSpy.calls.mostRecent().args[0].accessToken).toBe('nuevo-jwt');
   });
 });

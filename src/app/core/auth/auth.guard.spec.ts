@@ -12,16 +12,24 @@ import { authGuard, guestGuard } from './auth.guard';
 
 describe('authentication guards', () => {
   let authenticated: boolean;
+  let pendingPassword: boolean;
+  let actorType: 'PLATAFORMA' | 'QUESERIA' | null;
   let router: Router;
 
   beforeEach(() => {
     authenticated = false;
+    pendingPassword = false;
+    actorType = null;
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
           provide: AuthService,
-          useValue: { autenticado: () => authenticated },
+          useValue: {
+            autenticado: () => authenticated,
+            debeCambiarPassword: () => pendingPassword,
+            tipoUsuario: () => actorType,
+          },
         },
       ],
     });
@@ -57,6 +65,20 @@ describe('authentication guards', () => {
     const result = runGuestGuard() as UrlTree;
 
     expect(router.serializeUrl(result)).toBe('/calidad/historico');
+  });
+
+  it('redirects a temporary session away from operational routes', () => {
+    authenticated = true;
+    pendingPassword = true;
+    expect(router.serializeUrl(runAuthGuard('/proveedores') as UrlTree))
+      .toBe('/cambiar-password-obligatoria');
+  });
+
+  it('redirects PLATFORM_ADMIN away from Calidad', () => {
+    authenticated = true;
+    actorType = 'PLATAFORMA';
+    expect(router.serializeUrl(runAuthGuard('/calidad/historico') as UrlTree))
+      .toBe('/plataforma');
   });
 
   function runAuthGuard(url: string): boolean | UrlTree {

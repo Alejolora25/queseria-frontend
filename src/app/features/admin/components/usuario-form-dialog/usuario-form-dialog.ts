@@ -8,6 +8,8 @@ import { SelectModule } from 'primeng/select';
 import { parseApiError } from '../../../../core/api/api-error';
 import { UsuariosApi } from '../../../../core/api/usuarios.api';
 import { RolUsuario } from '../../../../core/auth/auth.models';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { UsuarioAdmin } from '../../../../core/api/usuarios.models';
 
 @Component({
   standalone: true,
@@ -33,11 +35,11 @@ import { RolUsuario } from '../../../../core/auth/auth.models';
           <input id="usuario-email" pInputText type="email" autocomplete="email" [formControl]="form.controls.email" [invalid]="form.controls.email.touched && form.controls.email.invalid" />
           @if (form.controls.email.touched && form.controls.email.invalid) { <small class="text-red-600">Ingresa un correo electrónico válido.</small> }
         </div>
-        <div class="flex flex-col gap-2">
+        @if (!usaTemporal) { <div class="flex flex-col gap-2">
           <label for="usuario-password" class="font-semibold">Contraseña temporal</label>
           <input id="usuario-password" pInputText type="password" autocomplete="new-password" [formControl]="form.controls.password" [invalid]="form.controls.password.touched && form.controls.password.invalid" />
           <small class="text-muted-color">Debe tener entre 8 y 72 caracteres.</small>
-        </div>
+        </div> } @else { <p class="text-sm text-muted-color">El sistema generará una contraseña temporal válida durante siete días.</p> }
         <div class="flex flex-col gap-2">
           <label for="usuario-roles" class="font-semibold">Rol</label>
           <p-select inputId="usuario-roles" [options]="roleOptions" optionLabel="label" optionValue="value" placeholder="Selecciona un rol" appendTo="body" scrollHeight="12rem" [filter]="true" filterPlaceholder="Buscar rol" [fluid]="true" [formControl]="form.controls.rol" [invalid]="form.controls.rol.touched && form.controls.rol.invalid" />
@@ -52,9 +54,18 @@ import { RolUsuario } from '../../../../core/auth/auth.models';
         </div>
       }
 
+      @if (creado()?.passwordTemporal; as temporal) {
+        <div class="app-alert app-alert-success mt-4">
+          <div class="font-medium">Usuario creado. Entrega esta contraseña temporal de forma segura.</div>
+          <div class="mt-2 break-all font-mono select-all">{{ temporal }}</div>
+          <div class="mt-2 text-sm">Se mostrará solo esta vez. Vence el {{ creado()?.credencialTemporalExpiraEn }}.</div>
+        </div>
+      }
+
       <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancelar()" [disabled]="busy()" />
-        <p-button label="Crear usuario" icon="pi pi-user-plus" (onClick)="guardar()" [loading]="busy()" [disabled]="form.invalid || busy()" />
+        @if (creado()) { <p-button label="Cerrar" (onClick)="cancelar()" /> }
+        @else { <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancelar()" [disabled]="busy()" />
+        <p-button label="Crear usuario" icon="pi pi-user-plus" (onClick)="guardar()" [loading]="busy()" [disabled]="form.invalid || busy()" /> }
       </div>
     </div>
   `,
@@ -62,7 +73,10 @@ import { RolUsuario } from '../../../../core/auth/auth.models';
 export class UsuarioFormDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(UsuariosApi);
+  private readonly auth = inject(AuthService);
   private readonly ref = inject(DynamicDialogRef);
+  readonly usaTemporal = this.auth.tipoUsuario() === 'QUESERIA';
+  readonly creado = signal<UsuarioAdmin | null>(null);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly fields = signal<Record<string, string[]> | null>(null);
@@ -74,11 +88,15 @@ export class UsuarioFormDialogComponent {
   readonly form = this.fb.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(180)]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
+    password: ['', this.usaTemporal ? [] : [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
     rol: this.fb.control<RolUsuario | null>(null, Validators.required),
   });
 
-  cancelar() { this.ref.close(); }
+  cancelar() {
+    const usuario = this.creado();
+    this.creado.set(null);
+    this.ref.close(usuario ? { ...usuario, passwordTemporal: null } : undefined);
+  }
 
   guardar() {
     this.form.markAllAsTouched();
@@ -88,10 +106,15 @@ export class UsuarioFormDialogComponent {
     this.api.crear({
       nombre: value.nombre.trim(),
       email: value.email.trim().toLowerCase(),
-      password: value.password,
+      ...(this.usaTemporal ? {} : { password: value.password }),
       roles: [value.rol!],
     }).subscribe({
-      next: usuario => { this.busy.set(false); this.form.controls.password.setValue(''); this.ref.close(usuario); },
+      next: usuario => {
+        this.busy.set(false);
+        this.form.controls.password.setValue('');
+        if (usuario.passwordTemporal) this.creado.set(usuario);
+        else this.ref.close(usuario);
+      },
       error: err => { this.busy.set(false); const parsed = parseApiError(err); this.error.set(parsed.message); this.fields.set(parsed.fields ?? null); },
     });
   }

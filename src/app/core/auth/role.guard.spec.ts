@@ -24,6 +24,8 @@ describe('roleGuard', () => {
           provide: AuthService,
           useValue: {
             autenticado: () => authenticated,
+            debeCambiarPassword: () => false,
+            tipoUsuario: () => null,
             tieneRol: (role: RolUsuario) => roles.includes(role),
           },
         },

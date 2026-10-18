@@ -55,6 +55,9 @@ export class LoginPageComponent {
   }
 
   private destinationAfterLogin(): string {
+    if (this.authService.debeCambiarPassword())
+      return '/cambiar-password-obligatoria';
+    if (this.authService.tipoUsuario() === 'PLATAFORMA') return '/plataforma';
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     return this.isSafeInternalUrl(returnUrl) ? returnUrl : '/calidad/historico';
   }

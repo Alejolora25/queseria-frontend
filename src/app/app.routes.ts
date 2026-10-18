@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard } from './core/auth/auth.guard';
+import { authGuard, guestGuard, pendingPasswordGuard, platformInfoGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
@@ -12,6 +12,19 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/pages/login-page/login-page')
         .then(m => m.LoginPageComponent),
+  },
+
+  {
+    path: 'cambiar-password-obligatoria',
+    canActivate: [pendingPasswordGuard],
+    loadComponent: () => import('./features/auth/pages/cambio-password-obligatorio-page/cambio-password-obligatorio-page')
+      .then(m => m.CambioPasswordObligatorioPageComponent),
+  },
+  {
+    path: 'plataforma',
+    canActivate: [platformInfoGuard],
+    loadComponent: () => import('./features/auth/pages/plataforma-info-page/plataforma-info-page')
+      .then(m => m.PlataformaInfoPageComponent),
   },
 
   {

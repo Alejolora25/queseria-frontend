@@ -14,6 +14,8 @@ describe('AuthSessionStorage', () => {
       email: 'admin@queseria.local',
       roles: ['ADMIN'],
       queseriaId: null,
+      tipoUsuario: null,
+      debeCambiarPassword: false,
     },
   };
 
@@ -51,5 +53,15 @@ describe('AuthSessionStorage', () => {
 
     expect(storage.read()).toBeNull();
     expect(window.sessionStorage.getItem(AUTH_SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('rejects a platform session forged with a queseriaId', () => {
+    window.sessionStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify({
+      ...session,
+      usuario: {
+        ...session.usuario, roles: ['PLATFORM_ADMIN'], tipoUsuario: 'PLATAFORMA', queseriaId: 7,
+      },
+    }));
+    expect(storage.read()).toBeNull();
   });
 });

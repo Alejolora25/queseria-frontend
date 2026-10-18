@@ -1,4 +1,6 @@
 export type RolUsuario = 'ADMIN' | 'OPERADOR' | 'LECTOR';
+export type RolSesion = RolUsuario | 'PLATFORM_ADMIN';
+export type TipoUsuario = 'PLATAFORMA' | 'QUESERIA';
 
 export interface LoginRequest {
   email: string;
@@ -9,15 +11,30 @@ export interface UsuarioSesion {
   id: number;
   nombre: string;
   email: string;
-  roles: RolUsuario[];
+  roles: RolSesion[];
   queseriaId: number | null;
+  tipoUsuario: TipoUsuario | null;
+  debeCambiarPassword: boolean;
 }
+
+export type UsuarioLogin = Omit<UsuarioSesion, 'tipoUsuario' | 'debeCambiarPassword'> &
+  Partial<Pick<UsuarioSesion, 'tipoUsuario' | 'debeCambiarPassword'>>;
 
 export interface LoginResponse {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
-  usuario: UsuarioSesion;
+  usuario: UsuarioLogin;
+}
+
+export interface CambioPasswordObligatoriaRequest {
+  passwordActual: string;
+  passwordNueva: string;
+}
+
+export interface CambioPasswordResponse {
+  accessToken: string;
+  expiresIn: number;
 }
 
 export interface SesionPersistida {

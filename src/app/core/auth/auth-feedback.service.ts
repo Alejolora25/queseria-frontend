@@ -20,7 +20,9 @@ export class AuthFeedbackService {
   }
 
   sessionExpired(): void {
-    this.show('Sesión finalizada', 'Tu sesión expiró. Inicia sesión nuevamente.', 6000);
+    this.show('Sesión finalizada',
+      'La sesión ya no es válida. Puede haber expirado o la quesería puede estar inactiva. Inicia sesión nuevamente.',
+      6000);
   }
 
   dismiss(): void {

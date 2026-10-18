@@ -2,7 +2,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { RolUsuario } from './core/auth/auth.models';
+import { RolSesion, RolUsuario } from './core/auth/auth.models';
 import { AuthService } from './core/auth/auth.service';
 import { AuthFeedbackService } from './core/auth/auth-feedback.service';
 
@@ -27,7 +27,11 @@ export class App {
   private readonly authService = inject(AuthService);
   private readonly authFeedbackService = inject(AuthFeedbackService);
   private readonly currentUrl = signal(this.router.url);
-  protected readonly showApplicationShell = computed(() => !this.currentUrl().startsWith('/login'));
+  protected readonly showApplicationShell = computed(() =>
+    !this.currentUrl().startsWith('/login')
+    && !this.currentUrl().startsWith('/cambiar-password-obligatoria')
+    && !this.currentUrl().startsWith('/plataforma'),
+  );
   protected readonly authFeedback = this.authFeedbackService.feedback;
   protected readonly usuarioActual = this.authService.usuarioActual;
   protected readonly inicialUsuario = computed(() =>
@@ -113,7 +117,8 @@ export class App {
     this.authFeedbackService.dismiss();
   }
 
-  private etiquetaRol(role: RolUsuario): string {
-    return ({ ADMIN: 'Administrador', OPERADOR: 'Operador', LECTOR: 'Lector' })[role];
+  private etiquetaRol(role: RolSesion): string {
+    return ({ ADMIN: 'Administrador', OPERADOR: 'Operador', LECTOR: 'Lector',
+      PLATFORM_ADMIN: 'Administrador de plataforma' })[role];
   }
 }

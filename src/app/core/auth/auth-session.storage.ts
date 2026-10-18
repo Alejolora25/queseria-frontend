@@ -1,11 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
 
-import { RolUsuario, SesionPersistida, UsuarioSesion } from './auth.models';
+import { RolSesion, SesionPersistida, UsuarioSesion } from './auth.models';
 
-export const AUTH_SESSION_STORAGE_KEY = 'queseria.auth.session.v1';
+export const AUTH_SESSION_STORAGE_KEY = 'queseria.auth.session.v2';
+const LEGACY_SESSION_STORAGE_KEY = 'queseria.auth.session.v1';
 
-const VALID_ROLES: readonly RolUsuario[] = ['ADMIN', 'OPERADOR', 'LECTOR'];
+const VALID_ROLES: readonly RolSesion[] = ['ADMIN', 'OPERADOR', 'LECTOR', 'PLATFORM_ADMIN'];
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionStorage {
@@ -17,6 +18,7 @@ export class AuthSessionStorage {
 
     try {
       const rawSession = storage.getItem(AUTH_SESSION_STORAGE_KEY);
+      storage.removeItem(LEGACY_SESSION_STORAGE_KEY);
       if (!rawSession) return null;
 
       const session: unknown = JSON.parse(rawSession);
@@ -41,7 +43,9 @@ export class AuthSessionStorage {
 
   clear(): void {
     try {
-      this.storage()?.removeItem(AUTH_SESSION_STORAGE_KEY);
+      const storage = this.storage();
+      storage?.removeItem(AUTH_SESSION_STORAGE_KEY);
+      storage?.removeItem(LEGACY_SESSION_STORAGE_KEY);
     } catch {
       // No hay información adicional que limpiar si el almacenamiento no está disponible.
     }
@@ -78,8 +82,18 @@ export class AuthSessionStorage {
       && typeof value['nombre'] === 'string'
       && typeof value['email'] === 'string'
       && Array.isArray(value['roles'])
-      && value['roles'].every(role => VALID_ROLES.includes(role as RolUsuario))
-      && (queseriaId === null || (typeof queseriaId === 'number' && Number.isFinite(queseriaId)));
+      && value['roles'].every(role => VALID_ROLES.includes(role as RolSesion))
+      && (value['tipoUsuario'] === null || value['tipoUsuario'] === 'PLATAFORMA'
+        || value['tipoUsuario'] === 'QUESERIA')
+      && typeof value['debeCambiarPassword'] === 'boolean'
+      && (queseriaId === null || (typeof queseriaId === 'number' && Number.isSafeInteger(queseriaId)
+        && queseriaId > 0))
+      && (value['tipoUsuario'] !== 'PLATAFORMA'
+        || (queseriaId === null && value['roles'].length === 1
+          && value['roles'][0] === 'PLATFORM_ADMIN'))
+      && (value['tipoUsuario'] !== 'QUESERIA'
+        || (typeof queseriaId === 'number' && !value['roles'].includes('PLATFORM_ADMIN')))
+      && (value['tipoUsuario'] !== null || !value['roles'].includes('PLATFORM_ADMIN'));
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {

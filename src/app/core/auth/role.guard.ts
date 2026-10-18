@@ -16,6 +16,11 @@ export const roleGuard: CanActivateFn = (route, state) => {
     });
   }
 
+  if (authService.debeCambiarPassword())
+    return router.createUrlTree(['/cambiar-password-obligatoria']);
+  if (authService.tipoUsuario() === 'PLATAFORMA')
+    return router.createUrlTree(['/plataforma']);
+
   const allowedRoles = route.data['roles'];
   if (isRoleList(allowedRoles) && allowedRoles.some(role => authService.tieneRol(role))) {
     return true;

@@ -37,7 +37,11 @@ describe('LoginPageComponent', () => {
       imports: [LoginPageComponent],
       providers: [
         provideNoopAnimations(),
-        { provide: AuthService, useValue: { login: loginSpy } },
+        { provide: AuthService, useValue: {
+          login: loginSpy,
+          debeCambiarPassword: () => false,
+          tipoUsuario: () => null,
+        } },
         { provide: Router, useValue: { navigateByUrl: navigateByUrlSpy } },
         {
           provide: ActivatedRoute,

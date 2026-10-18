@@ -1,59 +1,50 @@
-# QueseriaFrontend
+# Frontend de Quesería
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.14.
+Aplicación Angular 20 que consume el único backend modular de Quesería.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- Node.js compatible con Angular 20.
+- Dependencias instaladas mediante `npm ci`.
+- Backend local disponible en `http://localhost:8080`.
 
-```bash
-ng serve
+## Desarrollo local
+
+```powershell
+npm ci
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+La aplicación queda disponible en `http://localhost:4200`. La URL del backend
+local está definida en `src/environments/environment.ts`.
 
-## Code scaffolding
+## Construcción de producción
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Los artefactos se generan en `dist/queseria-frontend`. La URL productiva está en
+`src/environments/environment.production.ts`.
 
-```bash
-ng generate --help
+El hostname productivo contiene el nombre histórico `calidad-leche-service`
+porque identifica el servicio desplegado en Render; no representa un módulo ni
+una carpeta actual del backend.
+
+## Pruebas
+
+```powershell
+npm test
 ```
 
-## Building
+## Contratos con el backend
 
-To build the project run:
+La reorganización interna del backend no cambia las rutas públicas. Las pantallas
+de administración y selección de proveedores continúan usando:
 
-```bash
-ng build
+```text
+/api/v1/proveedores
+/api/v1/proveedores/{id}
+/api/v1/proveedores/{id}/activar
+/api/v1/proveedores/{id}/desactivar
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

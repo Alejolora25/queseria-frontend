@@ -1,4 +1,5 @@
 import { RolUsuario } from '../auth/auth.models';
+import { TipoUsuario } from '../auth/auth.models';
 
 export interface UsuarioAdmin {
   id: number;
@@ -7,14 +8,18 @@ export interface UsuarioAdmin {
   activo: boolean;
   roles: [RolUsuario];
   queseriaId: number | null;
+  tipoUsuario?: TipoUsuario;
+  debeCambiarPassword?: boolean;
   creadoEn: string;
   actualizadoEn: string;
+  passwordTemporal?: string | null;
+  credencialTemporalExpiraEn?: string | null;
 }
 
 export interface CrearUsuarioRequest {
   nombre: string;
   email: string;
-  password: string;
+  password?: string;
   roles: [RolUsuario];
 }
 

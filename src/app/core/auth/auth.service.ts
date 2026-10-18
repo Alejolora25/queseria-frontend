@@ -6,7 +6,10 @@ import { AuthSessionStorage } from './auth-session.storage';
 import {
   LoginRequest,
   LoginResponse,
+  CambioPasswordObligatoriaRequest,
+  CambioPasswordResponse,
   RolUsuario,
+  RolSesion,
   SesionPersistida,
   UsuarioSesion,
 } from './auth.models';
@@ -28,7 +31,9 @@ export class AuthService {
   readonly autenticado = computed(
     () => this.usuarioState() !== null && this.accessTokenState() !== null,
   );
-  readonly roles = computed<readonly RolUsuario[]>(() => this.usuarioState()?.roles ?? []);
+  readonly roles = computed<readonly RolSesion[]>(() => this.usuarioState()?.roles ?? []);
+  readonly tipoUsuario = computed(() => this.usuarioState()?.tipoUsuario ?? null);
+  readonly debeCambiarPassword = computed(() => this.usuarioState()?.debeCambiarPassword ?? false);
 
   constructor() {
     this.restoreSession();
@@ -42,6 +47,21 @@ export class AuthService {
 
     return this.authApi.login(normalizedRequest).pipe(
       tap(response => this.startSession(response)),
+    );
+  }
+
+  cambiarPasswordObligatoria(request: CambioPasswordObligatoriaRequest): Observable<CambioPasswordResponse> {
+    return this.authApi.cambiarPasswordObligatoria(request).pipe(
+      tap(response => {
+        const usuario = this.usuarioState();
+        if (!usuario) return;
+        this.startSession({
+          accessToken: response.accessToken,
+          tokenType: 'Bearer',
+          expiresIn: response.expiresIn,
+          usuario: { ...usuario, debeCambiarPassword: false },
+        });
+      }),
     );
   }
 
@@ -63,7 +83,11 @@ export class AuthService {
       accessToken: response.accessToken,
       expiresIn: response.expiresIn,
       expiresAt: Date.now() + response.expiresIn * 1_000,
-      usuario: response.usuario,
+      usuario: {
+        ...response.usuario,
+        tipoUsuario: response.usuario.tipoUsuario ?? null,
+        debeCambiarPassword: response.usuario.debeCambiarPassword ?? false,
+      },
     };
 
     this.sessionStorage.write(session);
