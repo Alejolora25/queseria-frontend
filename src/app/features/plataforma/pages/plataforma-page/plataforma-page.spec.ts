@@ -73,4 +73,38 @@ describe('PlataformaPageComponent', () => {
     expect(fixture.componentInstance.dialogo()).toBe('ver-queseria');
     http.verify();
   });
+
+  it('presenta queserías y administradores en tarjetas con acciones para móvil', () => {
+    TestBed.configureTestingModule({
+      imports: [PlataformaPageComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(),
+        { provide: AuthService, useValue: { usuarioActual: signal({ id: 1, nombre: 'Plataforma', email: 'admin@test.local' }), logout: jasmine.createSpy('logout') } },
+        { provide: Router, useValue: { navigateByUrl: jasmine.createSpy('navigateByUrl') } }],
+    });
+    const fixture = TestBed.createComponent(PlataformaPageComponent);
+    const page = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(req => req.url === '/api/v1/platform/queserias').flush({ items: [{
+      id: 7, nombre: 'Quesería B', estado: 'ACTIVA', razonSocial: null,
+      nit: null, direccion: null, ciudad: null, departamento: null,
+      fechaCreacion: '2026-10-18T10:00:00Z', fechaActualizacion: '2026-10-18T10:00:00Z',
+    }], page: 0, size: 20, total: 1 });
+    fixture.detectChanges();
+    const queseriaCard = (fixture.nativeElement as HTMLElement).querySelector('.platform-mobile-card');
+    expect(queseriaCard?.textContent).toContain('Quesería B');
+    expect([...queseriaCard!.querySelectorAll('button')].map(button => button.textContent?.trim()))
+      .toEqual(['Ver', 'Editar', 'Desactivar']);
+
+    page.irA('administradores');
+    http.expectOne('/api/v1/platform/administradores').flush([
+      { id: 1, nombre: 'Plataforma', email: 'admin@test.local', activo: true, creadoEn: '2026-10-18T10:00:00Z' },
+      { id: 2, nombre: 'Otro administrador', email: 'otro@test.local', activo: true, creadoEn: '2026-10-18T10:00:00Z' },
+    ]);
+    fixture.detectChanges();
+    const adminCards = (fixture.nativeElement as HTMLElement).querySelectorAll('.platform-mobile-card');
+    expect(adminCards.length).toBe(2);
+    expect(adminCards[0].querySelector('button')?.hasAttribute('disabled')).toBeTrue();
+    expect(adminCards[1].querySelector('button')?.hasAttribute('disabled')).toBeFalse();
+    http.verify();
+  });
 });
