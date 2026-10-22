@@ -11,7 +11,7 @@ import {
 import { AuthService } from '../../../../core/auth/auth.service';
 
 type Vista = 'queserias' | 'administradores';
-type Dialogo = 'crear-queseria' | 'editar-queseria' | 'activar-queseria' |
+type Dialogo = 'crear-queseria' | 'editar-queseria' | 'ver-queseria' | 'activar-queseria' |
   'desactivar-queseria' | 'regenerar-credencial' | 'crear-administrador' |
   'estado-administrador' | null;
 
@@ -31,6 +31,7 @@ export class PlataformaPageComponent {
   readonly vista = signal<Vista>('queserias');
   readonly dialogo = signal<Dialogo>(null);
   readonly cargando = signal(false);
+  readonly cargandoAdministradores = signal(false);
   readonly guardando = signal(false);
   readonly error = signal<string | null>(null);
   readonly aviso = signal<string | null>(null);
@@ -111,11 +112,27 @@ export class PlataformaPageComponent {
   seleccionar(queseria: QueseriaPlataforma): void {
     this.seleccionada.set(queseria);
     this.administradoresQueseria.set([]);
+    this.cargandoAdministradores.set(true);
     this.error.set(null);
     this.api.listarAdministradoresQueseria(queseria.id).subscribe({
-      next: usuarios => this.administradoresQueseria.set(usuarios),
-      error: e => this.fallo(e),
+      next: usuarios => {
+        if (this.seleccionada()?.id === queseria.id) {
+          this.administradoresQueseria.set(usuarios);
+          this.cargandoAdministradores.set(false);
+        }
+      },
+      error: e => {
+        if (this.seleccionada()?.id === queseria.id) {
+          this.cargandoAdministradores.set(false);
+          this.fallo(e);
+        }
+      },
     });
+  }
+
+  verQueseria(queseria: QueseriaPlataforma): void {
+    this.seleccionar(queseria);
+    this.dialogo.set('ver-queseria');
   }
 
   nuevaQueseria(): void {
@@ -299,7 +316,11 @@ export class PlataformaPageComponent {
     });
   }
 
-  cerrarDialogo(): void { if (!this.guardando()) { this.dialogo.set(null); this.error.set(null); } }
+  cerrarDialogo(): void {
+    if (this.guardando()) return;
+    this.dialogo.set(this.dialogo() === 'regenerar-credencial' ? 'ver-queseria' : null);
+    this.error.set(null);
+  }
   cerrarCredencial(): void { this.credencial.set(null); }
   cerrarSesion(): void {
     this.cerrarCredencial();
