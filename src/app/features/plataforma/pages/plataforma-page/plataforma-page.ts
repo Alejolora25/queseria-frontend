@@ -13,7 +13,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 type Vista = 'queserias' | 'administradores';
 type Dialogo = 'crear-queseria' | 'editar-queseria' | 'ver-queseria' | 'activar-queseria' |
   'desactivar-queseria' | 'regenerar-credencial' | 'crear-administrador' |
-  'estado-administrador' | null;
+  'estado-administrador' | 'regenerar-admin-plataforma' | null;
 
 @Component({
   standalone: true,
@@ -312,6 +312,34 @@ export class PlataformaPageComponent {
         this.dialogo.set(null);
         this.aviso.set(`Administrador ${admin.nombre} ${admin.activo ? 'desactivado' : 'activado'}.`);
         this.cargarAdministradoresPlataforma();
+      }, error: e => this.fallo(e),
+    });
+  }
+
+  prepararRegeneracionAdministrador(admin: AdministradorPlataforma): void {
+    if (!admin.activo || admin.id === this.usuario()?.id) return;
+    this.plataformaAdminSeleccionado.set(admin);
+    this.motivoForm.reset();
+    this.limpiarMensajes();
+    this.dialogo.set('regenerar-admin-plataforma');
+  }
+
+  regenerarCredencialAdministrador(): void {
+    const admin = this.plataformaAdminSeleccionado();
+    const motivo = this.motivoForm.controls.motivo.value.trim();
+    if (!admin || !admin.activo || admin.id === this.usuario()?.id || !motivo || this.guardando()) {
+      this.motivoForm.markAllAsTouched();
+      return;
+    }
+    this.guardando.set(true);
+    this.api.regenerarCredencialAdministradorPlataforma(admin.id, motivo).subscribe({
+      next: respuesta => {
+        this.guardando.set(false);
+        this.dialogo.set(null);
+        this.credencial.set({ passwordTemporal: respuesta.passwordTemporal,
+          credencialTemporalExpiraEn: respuesta.credencialTemporalExpiraEn,
+          email: respuesta.email, contexto: `Administrador de plataforma: ${admin.nombre}` });
+        this.aviso.set('Credencial temporal regenerada. La anterior quedó invalidada.');
       }, error: e => this.fallo(e),
     });
   }

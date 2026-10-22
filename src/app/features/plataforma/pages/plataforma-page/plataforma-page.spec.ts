@@ -105,6 +105,17 @@ describe('PlataformaPageComponent', () => {
     expect(adminCards.length).toBe(2);
     expect(adminCards[0].querySelector('button')?.hasAttribute('disabled')).toBeTrue();
     expect(adminCards[1].querySelector('button')?.hasAttribute('disabled')).toBeFalse();
+    (adminCards[1].querySelector('button') as HTMLButtonElement).click();
+    expect(page.dialogo()).toBe('regenerar-admin-plataforma');
+    page.motivoForm.patchValue({ motivo: 'Recuperación solicitada por otro administrador' });
+    page.regenerarCredencialAdministrador();
+    const solicitud = http.expectOne('/api/v1/platform/administradores/2/regenerar-credencial');
+    expect(solicitud.request.body).toEqual({ motivo: 'Recuperación solicitada por otro administrador' });
+    solicitud.flush({ email: 'otro@test.local', passwordTemporal: 'solo-una-vez',
+      credencialTemporalExpiraEn: '2026-10-28T10:00:00Z' });
+    expect(page.credencial()?.passwordTemporal).toBe('solo-una-vez');
+    page.cerrarCredencial();
+    expect(page.credencial()).toBeNull();
     http.verify();
   });
 });

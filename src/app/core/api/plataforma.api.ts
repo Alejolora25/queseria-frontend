@@ -63,4 +63,10 @@ export class PlataformaApi {
       `${this.administradoresUrl}/${id}/${activo ? 'activar' : 'desactivar'}`, {},
     );
   }
+
+  regenerarCredencialAdministradorPlataforma(id: number, motivo: string) {
+    return this.http.post<CredencialRegeneradaResponse>(
+      `${this.administradoresUrl}/${id}/regenerar-credencial`, { motivo },
+    );
+  }
 }
