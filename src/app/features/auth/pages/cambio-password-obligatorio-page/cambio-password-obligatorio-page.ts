@@ -19,6 +19,9 @@ export class CambioPasswordObligatorioPageComponent {
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly mostrarActual = signal(false);
+  readonly mostrarNueva = signal(false);
+  readonly mostrarConfirmacion = signal(false);
   readonly form = this.fb.nonNullable.group({
     passwordActual: ['', Validators.required],
     passwordNueva: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(72)]],
