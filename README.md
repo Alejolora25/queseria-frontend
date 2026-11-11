@@ -2,6 +2,21 @@
 
 Aplicación Angular 20 que consume el único backend modular de Quesería.
 
+## Qué ofrece
+
+- **Administración de plataforma:** gestiona queserías, sus administradores
+  iniciales y las cuentas `PLATFORM_ADMIN`. No muestra datos privados de
+  clientes.
+- **Área operativa:** administra proveedores y usuarios de la quesería,
+  registra muestras y analíticas de leche, y consulta históricos y resúmenes.
+- **Producción:** administra productos, insumos, subproductos y operarios;
+  abre y edita lotes, registra finalización o pérdida total, muestra cálculos,
+  correcciones auditadas e indicadores.
+
+La interfaz usa menús y formularios adaptables a móvil. La identidad y la
+quesería provienen del backend; ninguna solicitud operativa envía un
+`queseriaId` elegido por el navegador.
+
 ## Requisitos
 
 - Node.js compatible con Angular 20.
@@ -34,37 +49,41 @@ una carpeta actual del backend.
 ## Pruebas
 
 ```powershell
-npm test
+npm run test:headless
 ```
 
-## Contratos con el backend
+## Acceso y navegación
 
 El usuario `PLATFORM_ADMIN` entra a `/plataforma`. Desde allí puede consultar,
 crear, editar, activar y desactivar queserías; consultar sus administradores y
 regenerar una credencial temporal con motivo; y gestionar administradores de
 plataforma. La contraseña temporal se muestra únicamente al crearla o
 regenerarla. Un administrador de quesería continúa entrando al área operativa,
-sin acceso a este panel. Para probar el panel local, reinicia el backend con el
-cambio de API y usa la cuenta de plataforma ya migrada.
+sin acceso a este panel. Si se pierde el acceso a una cuenta de plataforma,
+otro administrador activo puede regenerar su credencial; el procedimiento de
+último recurso está en el [README del backend](../../backend/README.md).
 
-Las comprobaciones automatizadas se ejecutan con `npm run test:headless`.
+| Rol | Interfaz disponible |
+| --- | --- |
+| `ADMIN` | Usuarios, catálogos y operaciones de su quesería; correcciones auditadas de lotes cerrados. |
+| `OPERADOR` | Consulta catálogos y registra, edita y cierra lotes; no administra usuarios ni catálogos. |
+| `LECTOR` | Consulta Proveedores, Calidad, Producción e indicadores; sin acciones de escritura. |
 
-Producción tiene rutas para resumen, cuatro catálogos, apertura, edición,
-histórico y detalle de lotes. `ADMIN` administra catálogos y puede corregir
-lotes cerrados; `OPERADOR` registra y cierra lotes; `LECTOR` consulta. El
-recorrido visual local por roles y dos queserías ya fue aprobado. El contrato
-funcional vigente está en
-[`backend/CONTRATO_PRODUCCION.md`](../../backend/CONTRATO_PRODUCCION.md).
+El cambio de una contraseña temporal es obligatorio antes de entrar al área
+operativa o administrativa. Si la quesería está inactiva o el backend revoca el
+JWT, se cierra la sesión. El frontend oculta acciones sin permiso; el backend
+vuelve a validar todos los permisos y el ámbito de quesería.
 
-La reorganización interna del backend no cambia las rutas públicas. Las pantallas
-de administración y selección de proveedores continúan usando:
+## Pantallas operativas
 
-```text
-/api/v1/proveedores
-/api/v1/proveedores/{id}
-/api/v1/proveedores/{id}/activar
-/api/v1/proveedores/{id}/desactivar
-```
+- `/proveedores`: búsqueda, alta, edición y estado de proveedores.
+- `/calidad/cargar`, `/calidad/historico` y `/calidad/resumen`: registro de
+  muestras, analíticas e indicadores de leche.
+- `/admin/usuarios`: cuentas y roles de la quesería, solo para `ADMIN`.
+- `/produccion`: resumen; `/produccion/catalogos/:tipo`: productos, insumos,
+  subproductos y operarios; `/produccion/nueva`: apertura; `/produccion/en-proceso`
+  y `/produccion/lotes`: trabajo e histórico; `/produccion/producciones/:id`:
+  detalle, cierre, pérdida o corrección según rol y estado.
 
 La sección `/produccion` pertenece al área operativa y admite `ADMIN`,
 `OPERADOR` y `LECTOR`; nunca a `PLATFORM_ADMIN`. Su vista inicial consulta el
@@ -88,3 +107,11 @@ referencias históricos ya guardados aunque se desactiven después de abrir el
 lote; la fecha y el código permanecen fijos. La API confirma los resultados
 guardados. `LECTOR` no ve enlaces de escritura. Las pantallas de cierre,
 pérdida, corrección auditada e histórico están disponibles.
+
+## Despliegue
+
+Vercel construye la rama `main` para producción. Su URL de backend se define en
+`src/environments/environment.production.ts` y apunta al servicio Render. Los
+commits y cambios locales no despliegan nada por sí solos; un push a la rama
+conectada activa el despliegue automático. El backend y su base deben estar
+compatibles antes de publicar cambios de frontend que dependan de rutas nuevas.
