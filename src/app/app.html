@@ -20,7 +20,7 @@
           <div>
             <div class="max-w-[185px] truncate text-lg font-semibold tracking-tight" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
             <div class="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-              Calidad de leche
+              Gestión de quesería
             </div>
           </div>
         </div>
@@ -31,7 +31,7 @@
           <a
             [routerLink]="item.route"
             routerLinkActive="is-active"
-            [routerLinkActiveOptions]="{ exact: true }"
+            [routerLinkActiveOptions]="{ exact: item.route !== '/produccion/catalogos' }"
             class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
             >
             <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
@@ -71,7 +71,7 @@
 
       <div class="text-center">
         <div class="max-w-[220px] truncate font-semibold leading-tight" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
-        <div class="text-xs text-slate-500">Calidad de leche</div>
+        <div class="text-xs text-slate-500">Gestión de quesería</div>
       </div>
 
       @if (usuarioActual()) {
@@ -101,7 +101,7 @@
             </div>
             <div>
               <div class="max-w-[185px] truncate font-semibold" [title]="nombreQueseria()">{{ nombreQueseria() }}</div>
-              <div class="text-xs text-slate-500">Calidad de leche</div>
+              <div class="text-xs text-slate-500">Gestión de quesería</div>
             </div>
           </div>
           <button
@@ -118,7 +118,7 @@
             <a
               [routerLink]="item.route"
               routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: true }"
+              [routerLinkActiveOptions]="{ exact: item.route !== '/produccion/catalogos' }"
               class="app-nav-link group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition"
               >
               <span class="app-nav-icon flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition">
@@ -150,7 +150,7 @@
       <section class="app-card mb-5 px-5 py-4 sm:px-6">
         <div class="flex flex-col gap-1">
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-            Calidad de leche
+            {{ currentSection() }}
           </p>
           <h1 class="text-2xl font-semibold tracking-tight text-slate-950">
             {{ currentPage().label }}

@@ -19,6 +19,27 @@ describe('application routes', () => {
     expect(proveedoresRoute?.canActivate).toContain(authGuard);
   });
 
+  it('reserva las consultas de Producción a los tres roles de quesería', () => {
+    for (const path of ['produccion', 'produccion/catalogos/:tipo',
+      'produccion/lotes', 'produccion/producciones/:id']) {
+      const route = routes.find(r => r.path === path);
+      expect(route?.canActivate).withContext(path).toContain(authGuard);
+      expect(route?.canActivate).withContext(path).toContain(roleGuard);
+      expect(route?.data?.['roles']).withContext(path).toEqual(['ADMIN', 'OPERADOR', 'LECTOR']);
+    }
+    expect(routes.find(route => route.path === 'produccion')?.loadComponent).toBeDefined();
+  });
+
+  it('reserva apertura y edición de lotes a ADMIN y OPERADOR', () => {
+    for (const path of ['produccion/nueva', 'produccion/en-proceso',
+      'produccion/producciones/:id/editar']) {
+      const route = routes.find(r => r.path === path);
+      expect(route?.canActivate).toContain(authGuard);
+      expect(route?.canActivate).toContain(roleGuard);
+      expect(route?.data?.['roles']).toEqual(['ADMIN', 'OPERADOR']);
+    }
+  });
+
   it('should keep login restricted to unauthenticated users', () => {
     const loginRoute = routes.find(route => route.path === 'login');
 

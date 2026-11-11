@@ -12,11 +12,11 @@ import { UsuariosPageComponent } from './usuarios-page';
 describe('UsuariosPageComponent', () => {
   const adminActual: UsuarioAdmin = {
     id: 1, nombre: 'Administrador', email: 'admin@queseria.local', activo: true,
-    roles: ['ADMIN'], queseriaId: null, creadoEn: '', actualizadoEn: '',
+    roles: ['ADMIN'], queseriaId: 1, creadoEn: '', actualizadoEn: '',
   };
   const operador: UsuarioAdmin = {
     id: 2, nombre: 'Operador', email: 'operador@queseria.local', activo: true,
-    roles: ['OPERADOR'], queseriaId: null, creadoEn: '', actualizadoEn: '',
+    roles: ['OPERADOR'], queseriaId: 1, creadoEn: '', actualizadoEn: '',
   };
   const page: UsuariosPageResponse = { items: [adminActual, operador], total: 2, limit: 20, offset: 0 };
 
@@ -26,7 +26,7 @@ describe('UsuariosPageComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: UsuariosApi, useValue: { listar: jasmine.createSpy().and.returnValue(of(page)) } },
-        { provide: AuthService, useValue: { usuarioActual: signal({ id: 1, nombre: 'Administrador', email: 'admin@queseria.local', roles: ['ADMIN'], queseriaId: null }) } },
+        { provide: AuthService, useValue: { usuarioActual: signal({ id: 1, nombre: 'Administrador', email: 'admin@queseria.local', roles: ['ADMIN'], queseriaId: 1, tipoUsuario: 'QUESERIA', debeCambiarPassword: false }) } },
       ],
     }).compileComponents();
   });

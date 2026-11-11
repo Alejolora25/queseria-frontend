@@ -1,0 +1,67 @@
+<div class="space-y-4">
+  <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <a routerLink="/produccion/lotes" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300 bg-white px-4 py-2.5 font-semibold text-sky-700 hover:bg-sky-50 sm:w-auto">Consultar lotes</a>
+    <a routerLink="/produccion/catalogos/productos" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300 bg-white px-4 py-2.5 font-semibold text-sky-700 transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 sm:w-auto">
+      <i class="pi pi-list" aria-hidden="true"></i> Ver catálogos
+    </a>
+    @if (puedeOperar()) {
+      <a routerLink="/produccion/nueva" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 font-semibold text-white transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 sm:w-auto"><i class="pi pi-plus" aria-hidden="true"></i> Nuevo lote</a>
+      <a routerLink="/produccion/en-proceso" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sky-300 bg-white px-4 py-2.5 font-semibold text-sky-700 transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 sm:w-auto">Lotes en proceso</a>
+    }
+  </div>
+
+  <form class="app-card grid gap-4 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end sm:p-6" aria-label="Periodo del resumen" (ngSubmit)="actualizar()">
+    <label class="text-sm font-semibold text-slate-800">Desde <span class="font-normal text-slate-500">(opcional)</span><input name="desde" [(ngModel)]="desde" type="date" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal" /></label>
+    <label class="text-sm font-semibold text-slate-800">Hasta <span class="font-normal text-slate-500">(opcional)</span><input name="hasta" [(ngModel)]="hasta" type="date" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal" /></label>
+    <div class="flex flex-col gap-2 sm:flex-row"><button type="submit" [disabled]="cargando()" class="rounded-xl bg-sky-600 px-5 py-2.5 font-semibold text-white disabled:opacity-50">Aplicar periodo</button><button type="button" [disabled]="cargando()" class="rounded-xl border border-sky-300 px-5 py-2.5 font-semibold text-sky-700 disabled:opacity-50" (click)="limpiarPeriodo()">Todo el histórico</button></div>
+  </form>
+
+  @if (error(); as mensaje) {
+    <div class="app-alert app-alert-error" role="alert">No se pudo consultar el resumen. {{ mensaje }}</div>
+  }
+
+  @if (cargando() && !resumen()) {
+    <div class="app-card px-6 py-8 text-sm text-slate-600" role="status">Cargando producción...</div>
+  }
+
+  @if (resumen(); as datos) {
+    <p class="text-sm text-slate-600" role="status">Periodo mostrado: {{ datos.periodo.desde || 'sin límite inicial' }} a {{ datos.periodo.hasta || 'sin límite final' }}. Las fechas son inclusivas.</p>
+    <section aria-label="Resumen de producción" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="app-card p-5"><p class="text-sm text-slate-500">Lotes registrados</p><p class="mt-2 text-3xl font-semibold text-slate-900">{{ datos.indicadores.totalLotes }}</p></div>
+      <div class="app-card p-5"><p class="text-sm text-slate-500">En proceso</p><p class="mt-2 text-3xl font-semibold text-sky-700">{{ datos.indicadores.enProceso }}</p></div>
+      <div class="app-card p-5"><p class="text-sm text-slate-500">Finalizados</p><p class="mt-2 text-3xl font-semibold text-emerald-700">{{ datos.indicadores.finalizadas }}</p></div>
+      <div class="app-card p-5"><p class="text-sm text-slate-500">Pérdidas totales</p><p class="mt-2 text-3xl font-semibold text-rose-700">{{ datos.indicadores.perdidasTotales }}</p></div>
+    </section>
+
+    <section class="app-card p-5 sm:p-6" aria-label="Indicadores de rendimiento">
+      <h2 class="text-lg font-semibold text-slate-900">Rendimiento</h2>
+      <p class="mt-1 text-sm text-slate-500">Los resultados reales incluyen únicamente lotes finalizados.</p>
+      <dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Litros registrados</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.litrosTodosEstados | number:'1.0-2' }} L</dd></div>
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Kilogramos reales</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.kgRealesFinalizados | number:'1.0-2' }} kg</dd></div>
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Rendimiento global</dt><dd class="mt-1 text-xl font-semibold">@if (datos.rendimientoGlobalRealLPorKg !== null) { {{ datos.rendimientoGlobalRealLPorKg | number:'1.0-2' }} L/kg } @else { — }</dd></div>
+      </dl>
+      <dl class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Kg esperados, todos los estados</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.kgEsperadosTodosEstados | number:'1.0-2' }} kg</dd></div>
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Litros de lotes finalizados</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.litrosFinalizados | number:'1.0-2' }} L</dd></div>
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Kg esperados de lotes finalizados</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.kgEsperadosFinalizados | number:'1.0-2' }} kg</dd></div>
+        <div class="rounded-xl bg-slate-50 p-4"><dt class="text-sm text-slate-500">Diferencia en lotes finalizados</dt><dd class="mt-1 text-xl font-semibold">{{ datos.indicadores.diferenciaKgFinalizados | number:'1.0-2' }} kg</dd></div>
+      </dl>
+    </section>
+
+    <section class="app-card p-5 sm:p-6" aria-label="Distribución por producto">
+      <h2 class="text-lg font-semibold text-slate-900">Distribución por producto</h2>
+      <p class="mt-1 text-sm text-slate-500">Los kg reales corresponden solamente a lotes finalizados. Los litros y kg esperados incluyen todos los estados.</p>
+      @if (datos.distribucionPorProducto.length === 0) { <p class="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No hay producciones en este periodo.</p> }
+      <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        @for (producto of datos.distribucionPorProducto; track producto.productoId) {
+          <article class="rounded-2xl border border-slate-200 p-4">
+            <h3 class="break-words font-semibold text-slate-900">{{ producto.productoNombre }}</h3>
+            <p class="mt-1 text-sm text-slate-500">{{ producto.totalLotes }} lotes: {{ producto.enProceso }} en proceso · {{ producto.finalizadas }} finalizados · {{ producto.perdidasTotales }} pérdidas</p>
+            <dl class="mt-3 grid grid-cols-2 gap-2 text-sm"><div class="rounded-xl bg-slate-50 p-3"><dt class="text-slate-500">Litros</dt><dd class="font-semibold">{{ producto.litrosTodosEstados | number:'1.0-2' }} L</dd></div><div class="rounded-xl bg-slate-50 p-3"><dt class="text-slate-500">Kg esperados</dt><dd class="font-semibold">{{ producto.kgEsperadosTodosEstados | number:'1.0-2' }} kg</dd></div><div class="col-span-2 rounded-xl bg-sky-50 p-3"><dt class="text-sky-800">Kg reales finalizados</dt><dd class="font-semibold">{{ producto.kgRealesFinalizados | number:'1.0-2' }} kg</dd></div></dl>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</div>

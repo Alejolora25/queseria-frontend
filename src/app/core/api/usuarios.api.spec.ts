@@ -10,7 +10,7 @@ describe('UsuariosApi', () => {
   let httpTesting: HttpTestingController;
   const usuario: UsuarioAdmin = {
     id: 2, nombre: 'Operador', email: 'operador@queseria.local', activo: true,
-    roles: ['OPERADOR'], queseriaId: null,
+    roles: ['OPERADOR'], queseriaId: 1,
     creadoEn: '2026-07-20T10:00:00-05:00', actualizadoEn: '2026-07-20T10:00:00-05:00',
   };
 

@@ -1,0 +1,40 @@
+<div class="space-y-4">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div><h2 class="text-xl font-semibold text-slate-900">Histórico de producción</h2><p class="mt-1 text-sm text-slate-500">Consulta lotes abiertos, finalizados y pérdidas totales de tu quesería.</p></div>
+    <a routerLink="/produccion" class="rounded-xl border border-sky-300 px-4 py-2.5 text-center font-semibold text-sky-700 hover:bg-sky-50">Volver a Producción</a>
+  </div>
+  <form class="app-card p-5 sm:p-6" (ngSubmit)="buscar()" aria-label="Filtros del histórico">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <label class="text-sm font-semibold text-slate-800">Desde<input name="desde" [(ngModel)]="desde" type="date" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal" /></label>
+      <label class="text-sm font-semibold text-slate-800">Hasta<input name="hasta" [(ngModel)]="hasta" type="date" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal" /></label>
+      <label class="text-sm font-semibold text-slate-800">Estado<select name="estado" [(ngModel)]="estado" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal"><option value="">Todos</option><option value="EN_PROCESO">En proceso</option><option value="FINALIZADA">Finalizada</option><option value="PERDIDA_TOTAL">Pérdida total</option></select></label>
+      <label class="text-sm font-semibold text-slate-800">Código de lote<input name="codigo" [(ngModel)]="codigo" type="search" placeholder="AAAAMMDD-001" class="mt-2 block w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal" /></label>
+    </div>
+    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+      <div><span class="block text-sm font-semibold text-slate-800">Producto</span><div class="mt-2 flex min-w-0 gap-2"><span class="min-w-0 flex-1 truncate rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm">{{ producto()?.nombre || 'Todos' }}</span><button type="button" class="rounded-xl border border-sky-300 px-3 font-semibold text-sky-700" aria-label="Elegir producto" (click)="selector.set('producto')">Elegir</button>@if (producto()) { <button type="button" class="rounded-xl px-2 font-semibold text-slate-600" aria-label="Quitar producto" (click)="quitarReferencia('producto')">×</button> }</div></div>
+      <div><span class="block text-sm font-semibold text-slate-800">Proveedor</span><div class="mt-2 flex min-w-0 gap-2"><span class="min-w-0 flex-1 truncate rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm">{{ proveedor()?.nombre || 'Todos' }}</span><button type="button" class="rounded-xl border border-sky-300 px-3 font-semibold text-sky-700" aria-label="Elegir proveedor" (click)="selector.set('proveedor')">Elegir</button>@if (proveedor()) { <button type="button" class="rounded-xl px-2 font-semibold text-slate-600" aria-label="Quitar proveedor" (click)="quitarReferencia('proveedor')">×</button> }</div></div>
+      <div><span class="block text-sm font-semibold text-slate-800">Operario</span><div class="mt-2 flex min-w-0 gap-2"><span class="min-w-0 flex-1 truncate rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm">{{ operario()?.nombre || 'Todos' }}</span><button type="button" class="rounded-xl border border-sky-300 px-3 font-semibold text-sky-700" aria-label="Elegir operario" (click)="selector.set('operario')">Elegir</button>@if (operario()) { <button type="button" class="rounded-xl px-2 font-semibold text-slate-600" aria-label="Quitar operario" (click)="quitarReferencia('operario')">×</button> }</div></div>
+    </div>
+    <div class="mt-5 flex flex-col gap-2 sm:flex-row"><button type="submit" class="rounded-xl bg-sky-600 px-5 py-2.5 font-semibold text-white hover:bg-sky-700">Aplicar filtros</button><button type="button" class="rounded-xl border border-sky-300 px-5 py-2.5 font-semibold text-sky-700 hover:bg-sky-50" (click)="limpiar()">Limpiar</button></div>
+  </form>
+  @if (error(); as mensaje) { <div class="app-alert app-alert-error" role="alert">{{ mensaje }}</div> }
+  <section class="app-card p-5 sm:p-6" aria-label="Listado de lotes">
+    <div class="flex justify-between gap-2"><h3 class="text-lg font-semibold text-slate-900">Resultados</h3><span class="text-sm text-slate-500">{{ total() }} en total</span></div>
+    @if (cargando()) { <p class="mt-5 text-sm text-slate-600" role="status">Cargando lotes...</p> }
+    @if (!cargando() && !error() && lotes().length === 0) { <p class="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No se encontraron lotes con estos filtros.</p> }
+    <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      @for (lote of lotes(); track lote.id) {
+        <article class="rounded-2xl border border-slate-200 p-4">
+          <div class="flex flex-wrap items-start justify-between gap-2"><h4 class="font-semibold text-slate-900">{{ lote.codigoLote }}</h4><span class="rounded-lg px-2 py-1 text-xs font-semibold" [class.bg-sky-50]="lote.estado === 'EN_PROCESO'" [class.text-sky-800]="lote.estado === 'EN_PROCESO'" [class.bg-emerald-50]="lote.estado === 'FINALIZADA'" [class.text-emerald-800]="lote.estado === 'FINALIZADA'" [class.bg-rose-50]="lote.estado === 'PERDIDA_TOTAL'" [class.text-rose-800]="lote.estado === 'PERDIDA_TOTAL'">{{ lote.estado === 'EN_PROCESO' ? 'En proceso' : lote.estado === 'FINALIZADA' ? 'Finalizada' : 'Pérdida total' }}</span></div>
+          <p class="mt-2 text-sm text-slate-600">{{ lote.productoNombre }} · {{ lote.fechaProduccion }}</p>
+          <p class="mt-1 text-sm text-slate-600">Operario: {{ lote.operarioNombre }}</p>
+          <p class="mt-1 text-sm text-slate-600">{{ lote.litrosTotales }} L · {{ lote.kgEsperados }} kg esperados</p>
+          @if (lote.kgReales !== null) { <p class="mt-1 text-sm font-semibold text-slate-800">{{ lote.kgReales }} kg reales</p> }
+          <a [routerLink]="['/produccion/producciones', lote.id]" class="mt-4 inline-flex w-full justify-center rounded-xl border border-sky-300 px-4 py-2.5 font-semibold text-sky-700 hover:bg-sky-50">Ver lote</a>
+        </article>
+      }
+    </div>
+    <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500"><span>Página {{ pagina() + 1 }} de {{ paginas() }}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-sky-300 px-4 py-2 font-semibold text-sky-700 disabled:opacity-40" [disabled]="pagina() === 0 || cargando()" (click)="cargar(pagina() - 1)">Anterior</button><button type="button" class="rounded-xl border border-sky-300 px-4 py-2 font-semibold text-sky-700 disabled:opacity-40" [disabled]="pagina() + 1 >= paginas() || cargando()" (click)="cargar(pagina() + 1)">Siguiente</button></div></div>
+  </section>
+</div>
+@if (selector(); as tipo) { <app-selector-referencia-produccion [tipo]="tipo" [soloActivos]="false" (elegido)="elegir($event)" (cerrado)="selector.set(null)" /> }

@@ -51,6 +51,27 @@ describe('App', () => {
 
     expect(compiled.querySelector('a[href="/admin/usuarios"]')).not.toBeNull();
     expect(compiled.querySelector('a[href="/calidad/cargar"]')).not.toBeNull();
+    expect(compiled.querySelector('a[href="/produccion"]')).not.toBeNull();
+    expect(compiled.querySelector('a[href="/produccion/nueva"]')).not.toBeNull();
+  });
+
+  it('muestra Producción en el menú móvil a OPERADOR y LECTOR', () => {
+    for (const rol of ['OPERADOR', 'LECTOR'] as const) {
+      roles = [rol];
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+      (fixture.nativeElement.querySelector('button[aria-label="Abrir menú"]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('nav[aria-label="Navegación móvil"] a[href="/produccion"]')).not.toBeNull();
+      fixture.destroy();
+    }
+  });
+
+  it('no muestra Producción si la cuenta carece de roles operativos', () => {
+    roles = [];
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/produccion"]')).toBeNull();
   });
 
   it('should hide restricted navigation from LECTOR', () => {
@@ -64,6 +85,8 @@ describe('App', () => {
     expect(compiled.querySelector('a[href="/proveedores"]')).not.toBeNull();
     expect(compiled.querySelector('a[href="/calidad/historico"]')).not.toBeNull();
     expect(compiled.querySelector('a[href="/calidad/resumen"]')).not.toBeNull();
+    expect(compiled.querySelector('a[href="/produccion/nueva"]')).toBeNull();
+    expect(compiled.querySelector('a[href="/produccion/en-proceso"]')).toBeNull();
   });
 
   it('should display the current user and their role', () => {

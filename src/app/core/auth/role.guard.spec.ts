@@ -9,11 +9,13 @@ import { roleGuard } from './role.guard';
 describe('roleGuard', () => {
   let authenticated: boolean;
   let roles: RolUsuario[];
+  let tipoUsuario: 'QUESERIA' | 'PLATAFORMA' | null;
   let accessDeniedSpy: jasmine.Spy;
 
   beforeEach(() => {
     authenticated = true;
     roles = [];
+    tipoUsuario = 'QUESERIA';
     accessDeniedSpy = jasmine.createSpy('accessDenied');
 
     TestBed.configureTestingModule({
@@ -25,7 +27,7 @@ describe('roleGuard', () => {
           useValue: {
             autenticado: () => authenticated,
             debeCambiarPassword: () => false,
-            tipoUsuario: () => null,
+            tipoUsuario: () => tipoUsuario,
             tieneRol: (role: RolUsuario) => roles.includes(role),
           },
         },
@@ -54,6 +56,15 @@ describe('roleGuard', () => {
     roles = ['OPERADOR'];
 
     expect(executeGuard(['ADMIN', 'OPERADOR'], '/calidad/cargar')).toBeTrue();
+  });
+
+  it('redirige PLATFORM_ADMIN fuera de Producción', () => {
+    tipoUsuario = 'PLATAFORMA';
+    const result = executeGuard(['ADMIN', 'OPERADOR', 'LECTOR'], '/produccion');
+    const router = TestBed.inject(Router);
+
+    expect(router.serializeUrl(result as ReturnType<Router['createUrlTree']>))
+      .toBe('/plataforma');
   });
 
   it('redirects a LECTOR to a permitted route', () => {

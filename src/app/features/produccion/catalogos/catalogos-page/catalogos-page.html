@@ -1,0 +1,136 @@
+<div class="space-y-4">
+  <nav class="app-card flex flex-wrap gap-2 p-3" aria-label="Catálogos de producción">
+    @for (tab of tabs; track tab.tipo) {
+      <a [routerLink]="'/produccion/catalogos/' + tab.tipo"
+         [class.bg-sky-700]="tipo() === tab.tipo" [class.text-white]="tipo() === tab.tipo" [class.text-sky-800]="tipo() !== tab.tipo"
+         class="rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600">
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900">{{ titulo() }}</h2>
+      <p class="mt-1 text-sm text-slate-500">Los elementos desactivados siguen disponibles en el historial de los lotes.</p>
+    </div>
+    @if (puedeAdministrar()) {
+      <button type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 font-semibold text-white transition hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 sm:w-auto" (click)="nuevo()">
+        <i class="pi pi-plus" aria-hidden="true"></i> Nuevo {{ singular().toLowerCase() }}
+      </button>
+    }
+  </div>
+
+  <section class="app-card p-5 sm:p-6" aria-label="Filtros de catálogo">
+    <form [formGroup]="filtros" (ngSubmit)="cargar(0)" class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_minmax(0,10rem)]">
+      <label class="flex min-w-0 flex-col gap-2 text-sm font-semibold text-slate-800">
+        Búsqueda
+        <input formControlName="q" type="search" placeholder="Nombre..." class="w-full min-w-0 rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />
+      </label>
+      <label class="flex flex-col gap-2 text-sm font-semibold text-slate-800">
+        Estado
+        <select formControlName="estado" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+          <option value="">Todos</option><option value="ACTIVO">Activos</option><option value="INACTIVO">Inactivos</option>
+        </select>
+      </label>
+      <label class="flex flex-col gap-2 text-sm font-semibold text-slate-800">
+        Tamaño de página
+        <select [value]="tamano()" (change)="cambiarTamano($event)" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+          <option value="10">10</option><option value="20">20</option><option value="50">50</option>
+        </select>
+      </label>
+      <div class="flex flex-col gap-2 sm:flex-row md:col-span-3">
+        <button type="button" class="rounded-xl border border-sky-300 px-4 py-2.5 font-semibold text-sky-700 hover:bg-sky-50" (click)="limpiarFiltros()">Limpiar</button>
+        <button type="submit" class="rounded-xl bg-sky-600 px-4 py-2.5 font-semibold text-white hover:bg-sky-700">Aplicar filtros</button>
+      </div>
+    </form>
+  </section>
+
+  @if (aviso(); as mensaje) { <div class="app-alert app-alert-success" role="status">{{ mensaje }}</div> }
+  @if (error(); as mensaje) { <div class="app-alert app-alert-error" role="alert">No se pudo consultar {{ titulo().toLowerCase() }}. {{ mensaje }}</div> }
+
+  <section class="app-card p-5 sm:p-6" aria-label="Listado de catálogo">
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="text-lg font-semibold text-slate-900">{{ titulo() }} registrados</h3>
+      <span class="text-sm text-slate-500">{{ total() }} en total</span>
+    </div>
+
+    @if (cargando()) { <p class="mt-5 text-sm text-slate-600" role="status">Cargando {{ titulo().toLowerCase() }}...</p> }
+    @if (!cargando() && filas().length === 0 && !error()) { <p class="mt-5 rounded-xl bg-slate-50 p-5 text-sm text-slate-600">No se encontraron {{ titulo().toLowerCase() }}.</p> }
+
+    <div class="mt-5 space-y-3 md:hidden">
+      @for (fila of filas(); track fila.id) {
+        <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0"><h4 class="break-words font-semibold text-slate-900">{{ fila.nombre }}</h4><p class="mt-1 text-sm text-slate-500">{{ fila.detalle }}</p></div>
+            <span class="shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold" [class.bg-emerald-100]="fila.estado === 'ACTIVO'" [class.text-emerald-800]="fila.estado === 'ACTIVO'" [class.bg-slate-100]="fila.estado !== 'ACTIVO'" [class.text-slate-600]="fila.estado !== 'ACTIVO'">{{ fila.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          @if (fila.descripcion) { <p class="mt-2 break-words text-sm text-slate-600">{{ fila.descripcion }}</p> }
+          @if (puedeAdministrar()) {
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+              <button type="button" class="rounded-xl border border-sky-300 px-4 py-2 font-semibold text-sky-700 hover:bg-sky-50" (click)="editar(fila)">Editar</button>
+              <button type="button" class="rounded-xl border px-4 py-2 font-semibold" [class.border-rose-300]="fila.estado === 'ACTIVO'" [class.text-rose-700]="fila.estado === 'ACTIVO'" [class.border-emerald-300]="fila.estado !== 'ACTIVO'" [class.text-emerald-700]="fila.estado !== 'ACTIVO'" (click)="confirmarEstado(fila)">{{ fila.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}</button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    <div class="mt-5 hidden overflow-x-auto md:block">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead><tr class="border-b border-slate-200 text-slate-600"><th scope="col" class="px-3 py-3">Nombre</th><th scope="col" class="px-3 py-3">Detalle</th><th scope="col" class="px-3 py-3">Estado</th>@if (puedeAdministrar()) { <th scope="col" class="px-3 py-3">Acciones</th> }</tr></thead>
+        <tbody>
+          @for (fila of filas(); track fila.id) {
+            <tr class="border-b border-slate-100 last:border-b-0">
+              <td class="max-w-72 px-3 py-3"><div class="break-words font-semibold text-slate-900">{{ fila.nombre }}</div>@if (fila.descripcion) { <div class="mt-1 break-words text-slate-500">{{ fila.descripcion }}</div> }</td>
+              <td class="px-3 py-3 text-slate-600">{{ fila.detalle }}</td>
+              <td class="px-3 py-3"><span class="rounded-lg px-2.5 py-1 text-xs font-semibold" [class.bg-emerald-100]="fila.estado === 'ACTIVO'" [class.text-emerald-800]="fila.estado === 'ACTIVO'" [class.bg-slate-100]="fila.estado !== 'ACTIVO'" [class.text-slate-600]="fila.estado !== 'ACTIVO'">{{ fila.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}</span></td>
+              @if (puedeAdministrar()) { <td class="px-3 py-3"><div class="flex flex-wrap gap-2"><button type="button" class="rounded-lg border border-sky-300 px-3 py-2 font-semibold text-sky-700 hover:bg-sky-50" (click)="editar(fila)">Editar</button><button type="button" class="rounded-lg px-3 py-2 font-semibold" [class.text-rose-700]="fila.estado === 'ACTIVO'" [class.text-emerald-700]="fila.estado !== 'ACTIVO'" (click)="confirmarEstado(fila)">{{ fila.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}</button></div></td> }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+      <span>Página {{ pagina() + 1 }} de {{ totalPaginas() }}</span>
+      <div class="flex gap-2">
+        <button type="button" class="rounded-xl border border-sky-300 px-4 py-2 font-semibold text-sky-700 disabled:cursor-not-allowed disabled:opacity-40" [disabled]="pagina() === 0 || cargando()" (click)="cambiarPagina(-1)">Anterior</button>
+        <button type="button" class="rounded-xl border border-sky-300 px-4 py-2 font-semibold text-sky-700 disabled:cursor-not-allowed disabled:opacity-40" [disabled]="pagina() + 1 >= totalPaginas() || cargando()" (click)="cambiarPagina(1)">Siguiente</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+@if (dialogo() === 'formulario') {
+  <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-3 sm:p-6">
+    <section role="dialog" aria-modal="true" aria-labelledby="catalogo-form-title" class="my-auto w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+      <div class="flex items-start justify-between gap-3"><div><h2 id="catalogo-form-title" class="text-xl font-semibold text-slate-900">{{ seleccionado() ? 'Editar' : 'Crear' }} {{ singular().toLowerCase() }}</h2><p class="mt-1 text-sm text-slate-500">Este catálogo pertenece a tu quesería.</p></div><button type="button" aria-label="Cerrar formulario" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100" [disabled]="guardando()" (click)="cerrarDialogo()"><i class="pi pi-times" aria-hidden="true"></i></button></div>
+      <form [formGroup]="formulario" (ngSubmit)="guardar()" class="mt-5 space-y-4">
+        <label class="block text-sm font-semibold text-slate-800">Nombre *<input formControlName="nombre" type="text" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />@if (formulario.controls.nombre.touched && (!formulario.controls.nombre.value.trim() || formulario.controls.nombre.invalid)) { <span class="mt-1 block text-xs text-rose-700">Ingresa un nombre.</span> }</label>
+        @if (tipo() === 'productos') {
+          <label class="block text-sm font-semibold text-slate-800">Descripción <span class="font-normal text-slate-500">(opcional)</span><textarea formControlName="descripcion" rows="3" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200"></textarea></label>
+          <label class="block text-sm font-semibold text-slate-800">Rendimiento esperado (L/kg) *<input formControlName="rendimiento" type="text" inputmode="decimal" placeholder="Ej. 10,5" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200" />@if (formulario.controls.rendimiento.touched && formulario.controls.rendimiento.invalid) { <span class="mt-1 block text-xs text-rose-700">Ingresa un valor positivo con hasta cuatro decimales.</span> }</label>
+        }
+        @if (tipo() === 'insumos' || tipo() === 'subproductos') {
+          <label class="block text-sm font-semibold text-slate-800">Unidad *<select formControlName="unidad" class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 font-normal outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200"><option value="">Selecciona una unidad</option>@for (unidad of (tipo() === 'insumos' ? unidadesInsumo : unidadesSubproducto); track unidad.valor) { <option [value]="unidad.valor">{{ unidad.etiqueta }}</option> }</select>@if (formulario.controls.unidad.touched && formulario.controls.unidad.invalid) { <span class="mt-1 block text-xs text-rose-700">Selecciona una unidad.</span> }</label>
+        }
+        @if (errorDialogo(); as mensaje) { <div class="app-alert app-alert-error" role="alert">{{ mensaje }}</div> }
+        <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end"><button type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 font-semibold text-slate-700" [disabled]="guardando()" (click)="cerrarDialogo()">Cancelar</button><button type="submit" class="rounded-xl bg-sky-600 px-4 py-2.5 font-semibold text-white disabled:opacity-50" [disabled]="guardando()">{{ guardando() ? 'Guardando...' : 'Guardar' }}</button></div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (dialogo() === 'estado') {
+@if (seleccionado(); as fila) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-3 sm:p-6">
+    <section role="dialog" aria-modal="true" aria-labelledby="catalogo-estado-title" class="my-auto w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+      <h2 id="catalogo-estado-title" class="text-xl font-semibold text-slate-900">{{ fila.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }} {{ fila.nombre }}</h2>
+      <p class="mt-3 text-sm leading-6 text-slate-600">@if (fila.estado === 'ACTIVO') { No se podrá seleccionar en lotes nuevos. Los lotes existentes conservarán sus datos históricos. } @else { Volverá a estar disponible para nuevas selecciones. }</p>
+      @if (errorDialogo(); as mensaje) { <div class="app-alert app-alert-error mt-4" role="alert">{{ mensaje }}</div> }
+      <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" class="rounded-xl border border-slate-300 px-4 py-2.5 font-semibold text-slate-700" [disabled]="guardando()" (click)="cerrarDialogo()">Cancelar</button><button type="button" class="rounded-xl px-4 py-2.5 font-semibold text-white disabled:opacity-50" [class.bg-rose-600]="fila.estado === 'ACTIVO'" [class.bg-emerald-700]="fila.estado !== 'ACTIVO'" [disabled]="guardando()" (click)="cambiarEstado()">{{ guardando() ? 'Guardando...' : (fila.estado === 'ACTIVO' ? 'Desactivar' : 'Activar') }}</button></div>
+    </section>
+  </div>
+}
+}

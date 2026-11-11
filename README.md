@@ -49,6 +49,13 @@ cambio de API y usa la cuenta de plataforma ya migrada.
 
 Las comprobaciones automatizadas se ejecutan con `npm run test:headless`.
 
+Producción tiene rutas para resumen, cuatro catálogos, apertura, edición,
+histórico y detalle de lotes. `ADMIN` administra catálogos y puede corregir
+lotes cerrados; `OPERADOR` registra y cierra lotes; `LECTOR` consulta. El
+recorrido visual local por roles y dos queserías ya fue aprobado. El contrato
+funcional vigente está en
+[`backend/CONTRATO_PRODUCCION.md`](../../backend/CONTRATO_PRODUCCION.md).
+
 La reorganización interna del backend no cambia las rutas públicas. Las pantallas
 de administración y selección de proveedores continúan usando:
 
@@ -58,3 +65,26 @@ de administración y selección de proveedores continúan usando:
 /api/v1/proveedores/{id}/activar
 /api/v1/proveedores/{id}/desactivar
 ```
+
+La sección `/produccion` pertenece al área operativa y admite `ADMIN`,
+`OPERADOR` y `LECTOR`; nunca a `PLATFORM_ADMIN`. Su vista inicial consulta el
+resumen de Producción. Los contratos de catálogos y lotes están en
+`src/app/core/api/produccion.models.ts` y `produccion.api.ts`. La quesería se
+obtiene en el backend desde el token; las solicitudes Angular no la envían.
+Para mostrar cifras locales, la base de trabajo debe tener aplicadas las
+migraciones V10 y V11. Los formularios de catálogos y lotes ya están disponibles.
+
+En **Producción → Catálogos** se administran productos, insumos, subproductos
+y operarios. `ADMIN` puede crear, editar, activar y desactivar; `OPERADOR` y
+`LECTOR` consultan y filtran. Cada catálogo ofrece búsqueda, estado y
+paginación, con tarjetas en móvil. Desactivar un elemento conserva su
+información en los lotes históricos.
+
+`ADMIN` y `OPERADOR` pueden abrir lotes desde **Nuevo lote** y retomar su
+edición desde **En proceso**. El formulario busca opciones activas con
+paginación, admite varios proveedores y cero o más insumos, y calcula una
+vista previa de litros y kg esperados. La edición mantiene los nombres y
+referencias históricos ya guardados aunque se desactiven después de abrir el
+lote; la fecha y el código permanecen fijos. La API confirma los resultados
+guardados. `LECTOR` no ve enlaces de escritura. Las pantallas de cierre,
+pérdida, corrección auditada e histórico están disponibles.

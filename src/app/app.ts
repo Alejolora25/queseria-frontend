@@ -75,6 +75,34 @@ export class App {
       roles: ['ADMIN', 'OPERADOR', 'LECTOR'],
     },
     {
+      label: 'Producción',
+      description: 'Lotes y rendimiento',
+      route: '/produccion',
+      icon: 'pi pi-box',
+      roles: ['ADMIN', 'OPERADOR', 'LECTOR'],
+    },
+    {
+      label: 'Catálogos',
+      description: 'Productos, insumos y equipo',
+      route: '/produccion/catalogos',
+      icon: 'pi pi-list',
+      roles: ['ADMIN', 'OPERADOR', 'LECTOR'],
+    },
+    {
+      label: 'Nuevo lote',
+      description: 'Registrar producción',
+      route: '/produccion/nueva',
+      icon: 'pi pi-plus-circle',
+      roles: ['ADMIN', 'OPERADOR'],
+    },
+    {
+      label: 'En proceso',
+      description: 'Continuar lotes abiertos',
+      route: '/produccion/en-proceso',
+      icon: 'pi pi-pencil',
+      roles: ['ADMIN', 'OPERADOR'],
+    },
+    {
       label: 'Administración',
       description: 'Usuarios y roles',
       route: '/admin/usuarios',
@@ -89,8 +117,12 @@ export class App {
 
   protected readonly currentPage = computed(() => {
     const url = this.currentUrl();
-    return this.allNavItems.find(item => url.startsWith(item.route)) ?? this.allNavItems[2];
+    return [...this.allNavItems].sort((a, b) => b.route.length - a.route.length)
+      .find(item => url.startsWith(item.route)) ?? this.allNavItems[2];
   });
+  protected readonly currentSection = computed(() =>
+    this.currentUrl().startsWith('/produccion') ? 'Producción' : 'Calidad de leche',
+  );
 
   constructor() {
     this.router.events.subscribe(event => {

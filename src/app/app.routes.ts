@@ -69,6 +69,68 @@ export const routes: Routes = [
   },
 
   {
+    path: 'produccion',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR', 'LECTOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/produccion-inicio-page/produccion-inicio-page')
+        .then(m => m.ProduccionInicioPageComponent),
+  },
+  {
+    path: 'produccion/catalogos',
+    pathMatch: 'full',
+    redirectTo: '/produccion/catalogos/productos',
+  },
+  {
+    path: 'produccion/catalogos/:tipo',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR', 'LECTOR'] },
+    loadComponent: () =>
+      import('./features/produccion/catalogos/catalogos-page/catalogos-page')
+        .then(m => m.CatalogosProduccionPageComponent),
+  },
+  {
+    path: 'produccion/nueva',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/nueva-produccion-page/nueva-produccion-page')
+        .then(m => m.NuevaProduccionPageComponent),
+  },
+  {
+    path: 'produccion/en-proceso',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/producciones-en-proceso-page/producciones-en-proceso-page')
+        .then(m => m.ProduccionesEnProcesoPageComponent),
+  },
+  {
+    path: 'produccion/lotes',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR', 'LECTOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/lotes-produccion-page/lotes-produccion-page')
+        .then(m => m.LotesProduccionPageComponent),
+  },
+  {
+    path: 'produccion/producciones/:id/editar',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/editar-produccion-page/editar-produccion-page')
+        .then(m => m.EditarProduccionPageComponent),
+  },
+  {
+    path: 'produccion/producciones/:id',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'OPERADOR', 'LECTOR'] },
+    loadComponent: () =>
+      import('./features/produccion/pages/detalle-produccion-page/detalle-produccion-page')
+        .then(m => m.DetalleProduccionPageComponent),
+  },
+
+  {
     path: 'admin',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['ADMIN'] },
